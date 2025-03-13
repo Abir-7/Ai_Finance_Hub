@@ -2,23 +2,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { model, Schema } from "mongoose";
 import { IUser } from "./user.interface";
-import { userRole } from "../../interface/auth.interface";
-import { appConfig } from "../../config";
+import { userRole } from "../../../interface/auth.interface";
+
 import bcrypt from "bcryptjs";
 const userSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
-  password: { type: String, required: true },
+  password: { type: String, required: true, select: false },
   role: { type: String, enum: userRole, default: "USER" },
+  authentication: {
+    expDate: { type: Date, default: null },
+    otp: { type: Number, default: null },
+  },
+  isVerified: { type: Boolean, default: false },
+  needToResetPass: { type: Boolean, default: false },
 });
-
-userSchema.statics.hashPassword = async function (password: string) {
-  try {
-    return await bcrypt.hash(password, Number(appConfig.bcrypt.salt_round));
-  } catch (error: any) {
-    throw new Error("Error hashing password");
-  }
-};
 
 userSchema.statics.comparePassword = async function (
   enteredPassword: string,

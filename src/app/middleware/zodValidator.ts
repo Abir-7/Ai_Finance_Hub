@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Schema } from "zod";
+import { AnyZodObject } from "zod";
 import catchAsync from "../utils/catchAsync";
+import { NextFunction, Request, Response } from "express";
 
-const zodValidator = async (schema: Schema) =>
-  catchAsync(async (req, res, next) => {
+const zodValidator = (schema: AnyZodObject) =>
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     await schema.parseAsync({ body: req.body });
     next();
   });

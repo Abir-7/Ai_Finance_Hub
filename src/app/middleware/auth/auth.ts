@@ -5,7 +5,7 @@ import { TUserRole } from "../../interface/auth.interface";
 
 import { jsonWebToken } from "../../utils/jwt/jwt";
 import { appConfig } from "../../config";
-import User from "../../modules/users/user.model";
+import User from "../../modules/users/user/user.model";
 
 export const auth =
   (...userRole: TUserRole[]) =>
