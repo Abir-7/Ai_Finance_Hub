@@ -4,11 +4,11 @@ import path from "path";
 dotenv.config({ path: path.join(process.cwd(), ".env") });
 
 export const appConfig = {
+  database: { dataBase_uri: process.env.DATABASE_URI },
   server: {
     port: process.env.PORT,
     node_env: process.env.NODE_ENV,
     ip: process.env.IP_ADDRESS,
-    dataBase_uri: process.env.DATABASE_URI,
   },
 
   jwt: {
