@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from "express";
 import { appConfig } from "../config";
+import AppError from "../errors/AppError";
 
 export const globalErrorHandler = async (
   error: any,
@@ -10,18 +11,23 @@ export const globalErrorHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  const statusCode = 500;
-  const message = "Something went wrong!";
+  let statusCode = 500;
+  let message = "Something went wrong!";
   const errors: {
     path: string;
     message: string;
-  }[] = [];
+  }[] = [{ path: "", message: "" }];
+
+  if (error instanceof AppError) {
+    statusCode = error.statusCode;
+    message = error.message;
+  }
 
   res.status(statusCode).json({
     success: false,
     statusCode,
     message,
-    errors: errors.length ? errors : undefined,
+    errors: errors,
     ...(appConfig.server.node_env === "development" && { stack: error.stack }),
   });
 };

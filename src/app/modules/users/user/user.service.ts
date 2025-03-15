@@ -1,6 +1,7 @@
 import getExpiryTime from "../../../utils/helper/getExpiryTime";
 import getHashedPassword from "../../../utils/helper/getHashedPassword";
 import getOtp from "../../../utils/helper/getOtp";
+import { sendEmail } from "../../../utils/sendEmail";
 import { UserProfile } from "../userProfile/userProfile.model";
 
 import { IUser } from "./user.interface";
@@ -10,7 +11,7 @@ const createUser = async (data: {
   email: string;
   fullName: string;
   password: string;
-}): Promise<IUser> => {
+}): Promise<Partial<IUser>> => {
   const hashedPassword = await getHashedPassword(data.password);
   const otp = getOtp(4);
   const expDate = getExpiryTime(10);
@@ -24,10 +25,18 @@ const createUser = async (data: {
   const createdUser = await User.create(userData);
 
   //user profile data
-  const userProfileData = { fullName: data.fullName };
+  const userProfileData = {
+    fullName: data.fullName,
+    email: createdUser.email,
+    user: createdUser._id,
+  };
   await UserProfile.create(userProfileData);
-
-  return createdUser;
+  await sendEmail(
+    data.email,
+    "Email Verification Code",
+    `Your code is: ${otp}`
+  );
+  return { email: createdUser.email, isVerified: createdUser.isVerified };
 };
 
 export const UserService = { createUser };

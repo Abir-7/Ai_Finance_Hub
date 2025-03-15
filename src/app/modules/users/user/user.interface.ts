@@ -8,6 +8,7 @@ export interface IBaseUser {
   authentication: {
     expDate: Date;
     otp: number;
+    token: string;
   };
   isVerified: boolean;
   needToResetPass: boolean;

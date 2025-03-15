@@ -20,4 +20,11 @@ export const appConfig = {
   bcrypt: {
     salt_round: process.env.SALT_ROUND,
   },
+  email: {
+    from: process.env.EMAIL_FROM,
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT as string),
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 };

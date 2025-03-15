@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\.fc28ebd315c50390b35dc3685335c8635d6f6d5c-audit.json",
+    "files": [
+        {
+            "date": 1742014376497,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-03-15-app.log",
+            "hash": "4d3d927b77bc1fa443920d4dc3ca8c105cae2c2c2bc8c657c642f4ddccc94a81"
+        }
+    ],
+    "hashType": "sha256"
+}

@@ -12,6 +12,7 @@ const userSchema = new Schema<IUser>({
   authentication: {
     expDate: { type: Date, default: null },
     otp: { type: Number, default: null },
+    token: { type: String, default: null },
   },
   isVerified: { type: Boolean, default: false },
   needToResetPass: { type: Boolean, default: false },
