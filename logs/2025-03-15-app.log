@@ -228,3 +228,5 @@
 {"level":"info","message":"Example app listening on port 5000 & ip:192.168.10.18","service":"your-service-name","timestamp":"2025-03-15 15:01:59"}
 {"level":"info","message":"MongoDB connected","service":"your-service-name","timestamp":"2025-03-15 15:02:14"}
 {"level":"info","message":"Example app listening on port 5000 & ip:192.168.10.18","service":"your-service-name","timestamp":"2025-03-15 15:02:14"}
+{"level":"info","message":"MongoDB connected","service":"your-service-name","timestamp":"2025-03-15 15:02:35"}
+{"level":"info","message":"Example app listening on port 5000 & ip:192.168.10.18","service":"your-service-name","timestamp":"2025-03-15 15:02:35"}
