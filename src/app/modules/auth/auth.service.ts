@@ -14,11 +14,10 @@ import getHashedPassword from "../../utils/helper/getHashedPassword";
 const userLogin = async (loginData: {
   email: string;
   password: string;
-}): Promise<{ accessToken: string; userData: any }> => {
+}): Promise<{ accessToken: string; userData: any; refreshToken: string }> => {
   const userData = await User.findOne({ email: loginData.email }).select(
     "+password"
   );
-
   if (!userData) {
     throw new AppError(status.BAD_REQUEST, "Please check your email");
   }
@@ -27,10 +26,7 @@ const userLogin = async (loginData: {
     throw new AppError(status.BAD_REQUEST, "Please verify your email.");
   }
 
-  const isPassMatch = await userData.comparePassword(
-    loginData.password,
-    userData.password
-  );
+  const isPassMatch = await userData.comparePassword(loginData.password);
 
   if (!isPassMatch) {
     throw new AppError(status.BAD_REQUEST, "Please check your password.");
@@ -48,10 +44,17 @@ const userLogin = async (loginData: {
     appConfig.jwt.jwt_access_exprire
   );
 
+  const refreshToken = jsonWebToken.generateToken(
+    jwtPayload,
+    appConfig.jwt.jwt_refresh_secret as string,
+    appConfig.jwt.jwt_refresh_exprire
+  );
+
   return {
     accessToken,
+    refreshToken,
     userData: {
-      ...userData,
+      ...userData.toObject(),
       password: null,
     },
   };
@@ -90,7 +93,7 @@ const verifyUser = async (
   let token = null;
   if (user.user.isVerified) {
     token = jsonWebToken.generateToken(
-      { email: user.email },
+      { userEmail: user.email },
       appConfig.jwt.jwt_access_secret as string,
       "10m"
     );
@@ -128,7 +131,9 @@ const verifyUser = async (
   };
 };
 
-const forgotPasswordRequest = async (email: string) => {
+const forgotPasswordRequest = async (
+  email: string
+): Promise<{ email: string }> => {
   const user = await User.findOne({ email });
   if (!user) {
     throw new AppError(status.BAD_REQUEST, "Email not found.");
@@ -165,7 +170,7 @@ const resetPassword = async (
     new_password: string;
     confirm_password: string;
   }
-) => {
+): Promise<{ email: string }> => {
   const { new_password, confirm_password } = userData;
 
   if (!token) {
@@ -200,6 +205,7 @@ const resetPassword = async (
   );
 
   const hassedPassword = await getHashedPassword(new_password);
+
   const updateData = await User.findOneAndUpdate(
     { email: decode.userEmail },
     {
@@ -208,8 +214,13 @@ const resetPassword = async (
     },
     { new: true }
   );
-
-  return { user: { email: updateData?.email } };
+  if (!updateData) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "Failed to reset password. Try again."
+    );
+  }
+  return { email: updateData?.email as string };
 };
 
 export const AuthService = {

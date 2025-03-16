@@ -18,12 +18,9 @@ const userSchema = new Schema<IUser>({
   needToResetPass: { type: Boolean, default: false },
 });
 
-userSchema.statics.comparePassword = async function (
-  enteredPassword: string,
-  storedPassword: string
-) {
+userSchema.methods.comparePassword = async function (enteredPassword: string) {
   try {
-    return await bcrypt.compare(enteredPassword, storedPassword);
+    return await bcrypt.compare(enteredPassword, this.password);
   } catch (error) {
     throw new Error("Error comparing password");
   }

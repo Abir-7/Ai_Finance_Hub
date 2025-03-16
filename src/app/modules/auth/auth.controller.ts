@@ -3,6 +3,23 @@ import status from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { AuthService } from "./auth.service";
+import { appConfig } from "../../config";
+
+const userLogin = catchAsync(async (req, res, next) => {
+  const result = await AuthService.userLogin(req.body);
+
+  res.cookie("refreshToken", result.refreshToken, {
+    secure: appConfig.server.node_env === "production",
+    httpOnly: true,
+  });
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User login successfull",
+    data: result,
+  });
+});
 
 const verifyUser = catchAsync(async (req, res, next) => {
   const { email, otp } = req.body;
@@ -11,7 +28,7 @@ const verifyUser = catchAsync(async (req, res, next) => {
   sendResponse(res, {
     success: true,
     statusCode: status.OK,
-    message: "Email Successfully verified.",
+    message: "Email successfully verified.",
     data: result,
   });
 });
@@ -28,7 +45,9 @@ const forgotPasswordRequest = catchAsync(async (req, res, next) => {
   });
 });
 const resetPassword = catchAsync(async (req, res, next) => {
-  const token = req.headers.authorization;
+  const tokenWithBearer = req.headers.authorization as string;
+  const token = tokenWithBearer.split(" ")[1];
+
   const result = await AuthService.resetPassword(token as string, req.body);
 
   sendResponse(res, {
@@ -43,4 +62,5 @@ export const AuthController = {
   verifyUser,
   forgotPasswordRequest,
   resetPassword,
+  userLogin,
 };

@@ -23,7 +23,7 @@ app.use("/api", router);
 app.get("/", (req, res) => {
   res.send("Hello World! This app name is Ai_Finance_Hub");
 });
-
+app.use("/uploads", express.static("uploads"));
 app.use(globalErrorHandler);
 app.use(noRouteFound);
 

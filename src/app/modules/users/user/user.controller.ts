@@ -14,4 +14,17 @@ const createUser = catchAsync(async (req, res) => {
     data: result,
   });
 });
-export const UserController = { createUser };
+
+const updateProfileImage = catchAsync(async (req, res) => {
+  const filePath = req.file?.path;
+
+  const result = await UserService.updateProfileImage(filePath as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Profile image changed successfully.",
+    data: result,
+  });
+});
+
+export const UserController = { createUser, updateProfileImage };

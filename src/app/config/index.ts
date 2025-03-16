@@ -27,4 +27,8 @@ export const appConfig = {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  multer: {
+    file_size_limit: process.env.MAX_FILE_SIZE,
+    max_file_number: process.env.MAX_COUNT_FILE,
+  },
 };

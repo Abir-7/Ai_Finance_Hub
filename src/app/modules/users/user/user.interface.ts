@@ -15,8 +15,5 @@ export interface IBaseUser {
 }
 
 export interface IUser extends IBaseUser, Document {
-  comparePassword(
-    enteredPassword: string,
-    storedPassword: string
-  ): Promise<boolean>;
+  comparePassword(enteredPassword: string): Promise<boolean>;
 }

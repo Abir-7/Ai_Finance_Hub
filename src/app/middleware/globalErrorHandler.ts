@@ -4,30 +4,76 @@
 import { NextFunction, Request, Response } from "express";
 import { appConfig } from "../config";
 import AppError from "../errors/AppError";
+import mongoose from "mongoose";
+import { handleZodError } from "../errors/zodErrorHandler";
+import { handleMongooseError } from "../errors/mongooseErrorHandler";
+import { ZodError } from "zod";
+import multer from "multer";
+import multerErrorHandler from "../errors/MulterErrorHandler";
 
 export const globalErrorHandler = async (
-  error: any,
+  err: any,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  let statusCode = 500;
-  let message = "Something went wrong!";
-  const errors: {
-    path: string;
-    message: string;
-  }[] = [{ path: "", message: "" }];
+  let statusCode = err.statusCode || 500;
+  let message = err.message || "Something went wrong!";
+  let errors: any = [];
 
-  if (error instanceof AppError) {
-    statusCode = error.statusCode;
-    message = error.message;
+  if (err instanceof mongoose.Error) {
+    const mongooseError = handleMongooseError(err);
+    statusCode = mongooseError.statusCode;
+    message = mongooseError.message;
+    errors = mongooseError.errors;
+  } else if (err?.name === "ValidationError") {
+    const mongooseError = handleMongooseError(err);
+    statusCode = mongooseError.statusCode;
+    message = mongooseError.message;
+    errors = mongooseError.errors;
+  } else if (err instanceof ZodError) {
+    const zodError = handleZodError(err);
+    statusCode = zodError.statusCode;
+    message = zodError.message;
+    errors = zodError.errors;
+  } else if (err?.name === "TokenExpiredError") {
+    statusCode = 401;
+    message = "Your session has expired. Please login again.";
+    errors = [
+      {
+        path: "token",
+        message: message,
+      },
+    ];
+  } else if (err instanceof multer.MulterError) {
+    const multerError = multerErrorHandler(err);
+    statusCode = multerError.statusCode;
+    message = multerError.message;
+    errors = multerError.errors;
+  } else if (err instanceof AppError) {
+    statusCode = err.statusCode;
+    message = err.message;
+    errors = [
+      {
+        path: "",
+        message: err.message,
+      },
+    ];
+  } else if (err instanceof Error) {
+    message = err.message;
+    errors = [
+      {
+        path: "",
+        message: err.message,
+      },
+    ];
   }
 
   res.status(statusCode).json({
     success: false,
-    statusCode,
+    status: statusCode,
     message,
-    errors: errors,
-    ...(appConfig.server.node_env === "development" && { stack: error.stack }),
+    errors: errors.length ? errors : undefined,
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 };
