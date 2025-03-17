@@ -5,6 +5,11 @@ export interface IAuthData {
   userRole: TUserRole;
 }
 
-export const userRole = ["ADMIN", "USER"] as const;
+export const userRoles = {
+  ADMIN: "ADMIN",
+  USER: "USER",
+} as const;
 
-export type TUserRole = (typeof userRole)[number];
+export const userRole = Object.values(userRoles);
+
+export type TUserRole = keyof typeof userRoles;

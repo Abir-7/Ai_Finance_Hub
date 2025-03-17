@@ -4,6 +4,7 @@ import server from "./app";
 import { appConfig } from "./app/config";
 import mongoose from "mongoose";
 import logger from "./app/utils/logger";
+import seedAdmin from "./app/DB";
 
 process.on("uncaughtException", (err) => {
   logger.error("Uncaught exception:", err);
@@ -19,7 +20,7 @@ process.on("unhandledRejection", (err) => {
 const main = async () => {
   await mongoose.connect(appConfig.database.dataBase_uri as string);
   logger.info("MongoDB connected");
-
+  seedAdmin();
   server.listen(
     Number(appConfig.server.port),
     appConfig.server.ip as string,

@@ -31,4 +31,8 @@ export const appConfig = {
     file_size_limit: process.env.MAX_FILE_SIZE,
     max_file_number: process.env.MAX_COUNT_FILE,
   },
+  admin: {
+    email: process.env.ADMIN_EMAIL,
+    password: process.env.ADMIN_PASSWORD,
+  },
 };
