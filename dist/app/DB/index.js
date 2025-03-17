@@ -17,7 +17,6 @@ const config_1 = require("../config");
 const auth_interface_1 = require("../interface/auth.interface");
 const adminProfile_model_1 = require("../modules/users/adminProfile/adminProfile.model");
 const user_model_1 = __importDefault(require("../modules/users/user/user.model"));
-const logger_1 = __importDefault(require("../utils/logger"));
 const superUser = {
     role: auth_interface_1.userRoles.ADMIN,
     email: config_1.appConfig.admin.email,
@@ -40,10 +39,6 @@ const seedAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
             yield adminProfile_model_1.AdminProfile.create([Object.assign(Object.assign({}, superUserProfile), { user: data[0]._id })], {
                 session,
             });
-            logger_1.default.info("Admin created.");
-        }
-        else {
-            logger_1.default.info("Admin already created.");
         }
         yield session.commitTransaction();
     }
