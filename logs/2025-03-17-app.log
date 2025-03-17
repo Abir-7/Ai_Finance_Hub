@@ -129,3 +129,6 @@
 {"level":"info","message":"Example app listening on port 5000 & ip:192.168.10.18","service":"your-service-name","timestamp":"2025-03-17 11:39:02"}
 {"level":"info","message":"Admin already created.","service":"your-service-name","timestamp":"2025-03-17 11:39:03"}
 {"level":"error","message":"Old password not matched.","service":"your-service-name","timestamp":"2025-03-17 11:39:08"}
+{"level":"info","message":"MongoDB connected","service":"your-service-name","timestamp":"2025-03-17 11:50:04"}
+{"level":"info","message":"Example app listening on port 5000 & ip:192.168.10.18","service":"your-service-name","timestamp":"2025-03-17 11:50:04"}
+{"level":"info","message":"Admin already created.","service":"your-service-name","timestamp":"2025-03-17 11:50:05"}
