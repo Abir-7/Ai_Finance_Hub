@@ -44,6 +44,7 @@ const forgotPasswordRequest = catchAsync(async (req, res, next) => {
     data: result,
   });
 });
+
 const resetPassword = catchAsync(async (req, res, next) => {
   const tokenWithBearer = req.headers.authorization as string;
   const token = tokenWithBearer.split(" ")[1];
@@ -58,9 +59,21 @@ const resetPassword = catchAsync(async (req, res, next) => {
   });
 });
 
+const getNewAccessToken = catchAsync(async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  const result = await AuthService.getNewAccessToken(refreshToken);
+  sendResponse(res, {
+    data: result,
+    success: true,
+    statusCode: status.OK,
+    message: "New access-token is created.",
+  });
+});
+
 export const AuthController = {
   verifyUser,
   forgotPasswordRequest,
   resetPassword,
   userLogin,
+  getNewAccessToken,
 };

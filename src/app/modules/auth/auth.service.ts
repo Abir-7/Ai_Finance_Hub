@@ -223,9 +223,41 @@ const resetPassword = async (
   return { email: updateData?.email as string };
 };
 
+const getNewAccessToken = async (
+  refreshToken: string
+): Promise<{ accessToken: string }> => {
+  if (!refreshToken) {
+    throw new AppError(status.UNAUTHORIZED, "Refresh token not found.");
+  }
+  const decode = jsonWebToken.verifyJwt(
+    refreshToken,
+    appConfig.jwt.jwt_refresh_secret as string
+  );
+
+  const { userEmail, userId, userRole } = decode;
+
+  if (userEmail && userId && userRole) {
+    const jwtPayload = {
+      userEmail: userEmail,
+      userId: userId,
+      userRole: userRole,
+    };
+
+    const accessToken = jsonWebToken.generateToken(
+      jwtPayload,
+      appConfig.jwt.jwt_access_secret as string,
+      appConfig.jwt.jwt_access_exprire
+    );
+    return { accessToken };
+  } else {
+    throw new AppError(status.UNAUTHORIZED, "You are unauthorized.");
+  }
+};
+
 export const AuthService = {
   userLogin,
   verifyUser,
   forgotPasswordRequest,
   resetPassword,
+  getNewAccessToken,
 };

@@ -4,7 +4,7 @@ import router from "./app/routes";
 import http from "http";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { noRouteFound } from "./app/utils/noRouteFound";
-
+import cookieParser from "cookie-parser";
 const app = express();
 
 const corsOption = {
@@ -14,7 +14,7 @@ const corsOption = {
 };
 
 app.use(cors(corsOption));
-
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
