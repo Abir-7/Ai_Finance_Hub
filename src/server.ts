@@ -16,9 +16,7 @@ process.on("unhandledRejection", (err) => {
   process.exit(1);
 });
 
-main().catch((err) => logger.error("Error connecting to MongoDB:", err));
-
-async function main() {
+const main = async () => {
   await mongoose.connect(appConfig.database.dataBase_uri as string);
   logger.info("MongoDB connected");
 
@@ -33,4 +31,5 @@ async function main() {
       );
     }
   );
-}
+};
+main().catch((err) => logger.error("Error connecting to MongoDB:", err));

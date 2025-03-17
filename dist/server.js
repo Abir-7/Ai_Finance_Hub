@@ -1,10 +1,23 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = __importDefault(require("./app"));
-const config_1 = require("./app/config");
-app_1.default.listen(config_1.appConfig.server.port, () => {
-    console.log(`Example app listening on port ${config_1.appConfig.server.port}`);
+/* eslint-disable no-console */
+import server from "./app";
+import { appConfig } from "./app/config";
+import mongoose from "mongoose";
+import logger from "./app/utils/logger";
+process.on("uncaughtException", (err) => {
+  logger.error("Uncaught exception:", err);
+  process.exit(1);
 });
+process.on("unhandledRejection", (err) => {
+  logger.error("Unhandled promise rejection:", err);
+  process.exit(1);
+});
+const main = async () => {
+  await mongoose.connect(appConfig.database.dataBase_uri);
+  logger.info("MongoDB connected");
+  server.listen(Number(appConfig.server.port), appConfig.server.ip, () => {
+    logger.info(
+      `Example app listening on port ${appConfig.server.port} & ip:${appConfig.server.ip}`
+    );
+  });
+};
+main().catch((err) => logger.error("Error connecting to MongoDB:", err));

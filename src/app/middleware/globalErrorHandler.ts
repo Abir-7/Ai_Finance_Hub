@@ -10,6 +10,7 @@ import { handleMongooseError } from "../errors/mongooseErrorHandler";
 import { ZodError } from "zod";
 import multer from "multer";
 import multerErrorHandler from "../errors/MulterErrorHandler";
+import logger from "../utils/logger";
 
 export const globalErrorHandler = async (
   err: any,
@@ -68,7 +69,7 @@ export const globalErrorHandler = async (
       },
     ];
   }
-
+  logger.error(message);
   res.status(statusCode).json({
     success: false,
     status: statusCode,

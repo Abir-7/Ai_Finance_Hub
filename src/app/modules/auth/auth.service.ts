@@ -4,12 +4,13 @@ import AppError from "../../errors/AppError";
 import User from "../users/user/user.model";
 
 import { jsonWebToken } from "../../utils/jwt/jwt";
-import { appConfig } from "../../config";
+
 import { UserProfile } from "../users/userProfile/userProfile.model";
 import getExpiryTime from "../../utils/helper/getExpiryTime";
 import getOtp from "../../utils/helper/getOtp";
 import { sendEmail } from "../../utils/sendEmail";
 import getHashedPassword from "../../utils/helper/getHashedPassword";
+import { appConfig } from "../../config";
 
 const userLogin = async (loginData: {
   email: string;
@@ -254,10 +255,54 @@ const getNewAccessToken = async (
   }
 };
 
+const updatePassword = async (
+  userId: string,
+  passData: {
+    new_password: string;
+    confirm_password: string;
+    old_password: string;
+  }
+): Promise<{ message: string; user: string }> => {
+  const { new_password, confirm_password, old_password } = passData;
+
+  const user = await User.findById(userId).select("+password");
+  if (!user) {
+    throw new AppError(status.NOT_FOUND, "User not found.");
+  }
+
+  const isPassMatch = await user.comparePassword(old_password);
+
+  if (!isPassMatch) {
+    throw new AppError(status.BAD_REQUEST, "Old password not matched.");
+  }
+
+  if (new_password !== confirm_password) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "New password and Confirm password doesn't match!"
+    );
+  }
+
+  const hassedPassword = await getHashedPassword(new_password);
+
+  if (!hassedPassword) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "Failed to update password. Try again."
+    );
+  }
+
+  user.password = hassedPassword;
+  await user.save();
+
+  return { user: user.email, message: "Password successfully updated." };
+};
+
 export const AuthService = {
   userLogin,
   verifyUser,
   forgotPasswordRequest,
   resetPassword,
   getNewAccessToken,
+  updatePassword,
 };
