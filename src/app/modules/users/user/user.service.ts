@@ -1,4 +1,3 @@
-import { getRelativePath } from "../../../middleware/fileUpload/getRelativeFilePath";
 import getExpiryTime from "../../../utils/helper/getExpiryTime";
 import getHashedPassword from "../../../utils/helper/getHashedPassword";
 import getOtp from "../../../utils/helper/getOtp";
@@ -40,8 +39,6 @@ const createUser = async (data: {
   return { email: createdUser.email, isVerified: createdUser.isVerified };
 };
 
-const updateProfileImage = async (path: string): Promise<string> => {
-  const image = getRelativePath(path);
-  return image;
+export const UserService = {
+  createUser,
 };
-export const UserService = { createUser, updateProfileImage };

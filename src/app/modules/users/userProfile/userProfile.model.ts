@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IUserProfile } from "./userProfile.interface";
+import { IUserProfile, profession } from "./userProfile.interface";
 
 const userProfileSchema = new Schema<IUserProfile>({
   fullName: { type: String },
@@ -10,6 +10,11 @@ const userProfileSchema = new Schema<IUserProfile>({
   address: { type: String },
   image: { type: String },
   user: { type: Schema.Types.ObjectId, ref: "User", unique: true },
+  profession: {
+    type: String,
+    enum: profession,
+    default: null,
+  },
 });
 
 export const UserProfile = model<IUserProfile>(

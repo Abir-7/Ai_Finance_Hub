@@ -1,0 +1,22 @@
+import { Types } from "mongoose";
+
+export interface IUserExpensePlan {
+  balance: {
+    income: number;
+    expense: number;
+  };
+  expenseLimit: {
+    food: number;
+    social: number;
+    pets: number;
+    education: number;
+    gift: number;
+    transport: number;
+    rent: number;
+    apparel: number;
+    beauty: number;
+    health: number;
+    other: number;
+  };
+  user: Types.ObjectId;
+}
