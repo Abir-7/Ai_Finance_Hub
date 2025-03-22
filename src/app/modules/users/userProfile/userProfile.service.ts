@@ -1,6 +1,6 @@
 import status from "http-status";
 import AppError from "../../../errors/AppError";
-import { getRelativePath } from "../../../middleware/fileUpload/getRelativeFilePath";
+import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 
 import { UserProfile } from "./userProfile.model";
 import { removeFalsyFields } from "../../../utils/helper/removeFalsyField";

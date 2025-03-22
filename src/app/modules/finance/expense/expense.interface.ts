@@ -1,13 +1,15 @@
+import { Types } from "mongoose";
+
 export interface IExpense {
-  date: Date;
   amount: number;
   category: TCategory;
   method: TMethod;
   note?: string;
   description: {
-    image: string;
+    images?: string[];
     info: string;
   };
+  user: Types.ObjectId;
 }
 export const categories = [
   "Food",

@@ -1,12 +1,10 @@
 import status from "http-status";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
-import { IncomeService } from "./income.service";
+import { ExpenseService } from "./expense.service";
 
-const addIncome = catchAsync(async (req, res) => {
-  //   const filePath = req.file?.path;
-
-  const result = await IncomeService.addIncome(
+const addExpense = catchAsync(async (req, res) => {
+  const result = await ExpenseService.addExpense(
     req.files as Express.Multer.File[],
     req.body,
     req.user.userId
@@ -15,11 +13,11 @@ const addIncome = catchAsync(async (req, res) => {
   sendResponse(res, {
     success: true,
     statusCode: status.OK,
-    message: "User income data successfully stored.",
+    message: "User expense data successfully stored.",
     data: result,
   });
 });
 
-export const IncomeController = {
-  addIncome,
+export const ExpenseController = {
+  addExpense,
 };

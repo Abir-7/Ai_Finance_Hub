@@ -1,12 +1,12 @@
 import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
-import { IIncome } from "./income.interface";
-import Income from "./income.model";
+import Expense from "./expence.model";
+import { IExpense } from "./expense.interface";
 
-const addIncome = async (
+const addExpense = async (
   imageArray: Express.Multer.File[],
-  incomeData: IIncome,
+  expenseData: IExpense,
   userId: string
-): Promise<IIncome> => {
+): Promise<IExpense> => {
   const images = [];
   for (let i = 0; i < imageArray.length; i++) {
     const path = getRelativePath(imageArray[i].path);
@@ -14,14 +14,14 @@ const addIncome = async (
   }
 
   if (images.length !== 0) {
-    incomeData.description.images = images;
+    expenseData.description.images = images;
   }
 
-  const result = await Income.create({ ...incomeData, user: userId });
+  const result = await Expense.create({ ...expenseData, user: userId });
 
   return result;
 };
 
-export const IncomeService = {
-  addIncome,
+export const ExpenseService = {
+  addExpense,
 };

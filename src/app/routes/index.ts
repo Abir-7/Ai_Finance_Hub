@@ -4,13 +4,21 @@ import { AuthRoute } from "../modules/auth/auth.route";
 import { UserProfileRoute } from "../modules/users/userProfile/userProfile.route";
 
 import { UserExpensePlanRoute } from "../modules/users/userExpensePlan/userExpensePlan.route";
+import { IncomeRoute } from "../modules/finance/income/income.route";
+import { ExpenseRoute } from "../modules/finance/expense/expense.route";
+import { FinanceReportRoute } from "../modules/finance/financeReport/financeReport.route";
 
 const router = Router();
+
 const apiRoutes = [
   { path: "/user", route: UserRoute },
   { path: "/user-profile", route: UserProfileRoute },
-  { path: "/user-balance", route: UserExpensePlanRoute },
+  { path: "/user-expense-plan", route: UserExpensePlanRoute },
   { path: "/auth", route: AuthRoute },
+  { path: "/income", route: IncomeRoute },
+  { path: "/expense", route: ExpenseRoute },
+  { path: "/finance-report", route: FinanceReportRoute },
 ];
+
 apiRoutes.forEach((route) => router.use(route.path, route.route));
 export default router;

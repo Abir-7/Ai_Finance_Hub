@@ -2,19 +2,19 @@ import { Router } from "express";
 import { auth } from "../../../middleware/auth/auth";
 import { upload } from "../../../middleware/fileUpload/fileUploadHandler";
 import { parseDataField } from "../../../middleware/fileUpload/parseDataField";
-import { IncomeController } from "./income.controller";
+import { ExpenseController } from "./exprense.controller";
 import zodValidator from "../../../middleware/zodValidator";
-import { zodIncomeSchema } from "./income.validation";
+import { zodExpenseSchema } from "./expense.validation";
 
 const router = Router();
 
 router.post(
-  "/add-income",
+  "/add-expense",
   auth("USER"),
   upload.array("images", 3),
   parseDataField("data"),
-  zodValidator(zodIncomeSchema),
-  IncomeController.addIncome
+  zodValidator(zodExpenseSchema),
+  ExpenseController.addExpense
 );
 
-export const IncomeRoute = router;
+export const ExpenseRoute = router;

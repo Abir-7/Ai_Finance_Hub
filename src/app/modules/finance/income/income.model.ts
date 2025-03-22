@@ -1,17 +1,17 @@
 import mongoose, { Schema } from "mongoose";
-import { IIncome, method } from "./income.interface";
+import { IIncome, method, source } from "./income.interface";
 
 const IncomeSchema = new Schema<IIncome>(
   {
-    date: { type: Date, required: true },
     amount: { type: Number, required: true },
-    source: { type: String, required: true },
+    source: { type: String, enum: source, required: true },
     method: { type: String, enum: method, required: true },
     note: { type: String },
     description: {
-      image: { type: String, required: true },
+      images: [{ type: String }],
       info: { type: String, required: true },
     },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );
