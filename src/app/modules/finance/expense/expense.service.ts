@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
-import Expense from "./expence.model";
+import Expense from "./expense.model";
 import { IExpense } from "./expense.interface";
+import mongoose from "mongoose";
 
 const addExpense = async (
   imageArray: Express.Multer.File[],
@@ -22,6 +24,32 @@ const addExpense = async (
   return result;
 };
 
+const getExpenseDataByDate = async (userId: string) => {
+  const expensesGrouped = await Expense.aggregate([
+    { $match: { user: new mongoose.Types.ObjectId(userId) } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        totalExpense: { $sum: "$amount" },
+        expenseDetails: { $push: "$$ROOT" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        date: "$_id",
+        totalExpense: 1,
+        expenseDetails: 1,
+      },
+    },
+    {
+      $sort: { date: -1 },
+    },
+  ]);
+  return expensesGrouped;
+};
+
 export const ExpenseService = {
   addExpense,
+  getExpenseDataByDate,
 };

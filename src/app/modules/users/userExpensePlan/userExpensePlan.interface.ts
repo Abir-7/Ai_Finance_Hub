@@ -20,3 +20,19 @@ export interface IUserExpensePlan {
   };
   user: Types.ObjectId;
 }
+
+export const categories = [
+  "food",
+  "social Life",
+  "pets",
+  "education",
+  "gift",
+  "transport",
+  "rent",
+  "apparel",
+  "beauty",
+  "health",
+  "other",
+] as const;
+
+export type TCategory = (typeof categories)[number];

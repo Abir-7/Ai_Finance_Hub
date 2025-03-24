@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-import { categories, IExpense, method } from "./expense.interface";
+import { categories } from "../../users/userExpensePlan/userExpensePlan.interface";
+import { IExpense, method } from "./expense.interface";
 
 const ExpenseSchema = new Schema<IExpense>(
   {

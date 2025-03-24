@@ -13,4 +13,15 @@ router.get(
   auth("USER"),
   FinanceReportController.getWeeklySummary
 );
+
+router.get(
+  "/get-present-month-summary",
+  auth("USER"),
+  FinanceReportController.getPresentMonthSummary
+);
+router.get(
+  "/get-present-month-expance-with-category-percent",
+  auth("USER"),
+  FinanceReportController.expenseInPercentWithCategory
+);
 export const FinanceReportRoute = router;

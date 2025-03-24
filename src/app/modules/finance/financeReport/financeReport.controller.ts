@@ -6,14 +6,15 @@ import { FinanceReportService } from "./financeReport.service";
 const getDailySummary = catchAsync(async (req, res) => {
   const result = await FinanceReportService.getDailySummary(
     req.user.userId,
-    req.query as { method: "cash" | "card" }
+    req.query
   );
 
   sendResponse(res, {
     success: true,
     statusCode: status.OK,
     message: "User daily summary data successfully fetched.",
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 
@@ -27,6 +28,32 @@ const getWeeklySummary = catchAsync(async (req, res) => {
     success: true,
     statusCode: status.OK,
     message: "User weekly summary data successfully fetched.",
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
+const getPresentMonthSummary = catchAsync(async (req, res) => {
+  const result = await FinanceReportService.presentMonthSummary(
+    req.user.userId
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User present summary data successfully fetched.",
+    data: result,
+  });
+});
+const expenseInPercentWithCategory = catchAsync(async (req, res) => {
+  const result = await FinanceReportService.expenseInPercentWithCategory(
+    req.user.userId
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User present expense with category percent successfully fetched.",
     data: result,
   });
 });
@@ -34,4 +61,6 @@ const getWeeklySummary = catchAsync(async (req, res) => {
 export const FinanceReportController = {
   getDailySummary,
   getWeeklySummary,
+  getPresentMonthSummary,
+  expenseInPercentWithCategory,
 };

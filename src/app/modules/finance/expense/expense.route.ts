@@ -17,4 +17,11 @@ router.post(
   ExpenseController.addExpense
 );
 
+router.get(
+  "/get-expense-data-by-date",
+  auth("USER"),
+
+  ExpenseController.getExpenseDataByDate
+);
+
 export const ExpenseRoute = router;

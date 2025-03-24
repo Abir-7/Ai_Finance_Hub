@@ -17,7 +17,18 @@ const addExpense = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getExpenseDataByDate = catchAsync(async (req, res) => {
+  const result = await ExpenseService.getExpenseDataByDate(req.user.userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User expense data successfully fetched",
+    data: result,
+  });
+});
 
 export const ExpenseController = {
   addExpense,
+  getExpenseDataByDate,
 };

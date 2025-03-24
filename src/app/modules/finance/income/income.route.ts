@@ -16,5 +16,10 @@ router.post(
   zodValidator(zodIncomeSchema),
   IncomeController.addIncome
 );
+router.get(
+  "/get-income-data-by-date",
+  auth("USER"),
+  IncomeController.getIncomeDataByDate
+);
 
 export const IncomeRoute = router;

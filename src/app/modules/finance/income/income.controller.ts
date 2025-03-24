@@ -20,6 +20,18 @@ const addIncome = catchAsync(async (req, res) => {
   });
 });
 
+const getIncomeDataByDate = catchAsync(async (req, res) => {
+  const result = await IncomeService.getIncomeDataByDate(req.user.userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User income data successfully fetched.",
+    data: result,
+  });
+});
+
 export const IncomeController = {
   addIncome,
+  getIncomeDataByDate,
 };

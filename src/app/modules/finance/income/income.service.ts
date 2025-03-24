@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import mongoose from "mongoose";
 import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 import { IIncome } from "./income.interface";
 import Income from "./income.model";
@@ -22,6 +24,35 @@ const addIncome = async (
   return result;
 };
 
+const getIncomeDataByDate = async (userId: string) => {
+  const incomesGrouped = await Income.aggregate([
+    {
+      $match: { user: new mongoose.Types.ObjectId(userId) },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        totalIncome: { $sum: "$amount" },
+        incomeDetails: { $push: "$$ROOT" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        date: "$_id",
+        totalIncome: 1,
+        incomeDetails: 1,
+      },
+    },
+    {
+      $sort: { date: -1 },
+    },
+  ]);
+
+  return incomesGrouped;
+};
+
 export const IncomeService = {
   addIncome,
+  getIncomeDataByDate,
 };
