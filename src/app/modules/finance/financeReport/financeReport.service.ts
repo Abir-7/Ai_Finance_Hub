@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { TMethod } from "../income/income.interface";
 import Income from "../income/income.model";
 import Expense from "../expense/expense.model";
+import { processQuery } from "../../../openAi/aiAgent";
 
 const getDailySummary = async (
   userId: string,
@@ -479,9 +480,30 @@ const expenseInPercentWithCategory = async (userId: string) => {
   return data;
 };
 
+const getDataFromAi = async (userId: string, text: string) => {
+  const prompt = `
+${text}
+User ID: ${userId}
+
+You are a financial assistant.
+Only respond to finance-related questions (budgeting, expenses, income, savings, etc.)
+
+**DO NOT:**
+1. Return or expose raw image links from the database.
+2. Respond to non-finance-related prompts.
+
+If a non-financial topic is detected, reply with:
+"I'm here to help with finance-related topics. Feel free to ask me about budgeting, expenses, income, or savings!"
+`;
+
+  const data = await processQuery(prompt);
+  return data;
+};
+
 export const FinanceReportService = {
   getDailySummary,
   getWeeklySummary,
   presentMonthSummary,
   expenseInPercentWithCategory,
+  getDataFromAi,
 };

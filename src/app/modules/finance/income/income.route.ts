@@ -21,5 +21,10 @@ router.get(
   auth("USER"),
   IncomeController.getIncomeDataByDate
 );
+router.get(
+  "/get-current-month-income",
+  auth("USER"),
+  IncomeController.getCurrentMonthIncome
+);
 
 export const IncomeRoute = router;

@@ -31,7 +31,19 @@ const getIncomeDataByDate = catchAsync(async (req, res) => {
   });
 });
 
+const getCurrentMonthIncome = catchAsync(async (req, res) => {
+  const result = await IncomeService.getCurrentMonthIncome(req.user.userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User current month income data successfully fetched.",
+    data: result,
+  });
+});
+
 export const IncomeController = {
   addIncome,
   getIncomeDataByDate,
+  getCurrentMonthIncome,
 };

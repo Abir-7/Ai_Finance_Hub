@@ -24,4 +24,11 @@ router.get(
   ExpenseController.getExpenseDataByDate
 );
 
+router.get(
+  "/get-current-month-expense",
+  auth("USER"),
+
+  ExpenseController.getCurrentMonthExpense
+);
+
 export const ExpenseRoute = router;

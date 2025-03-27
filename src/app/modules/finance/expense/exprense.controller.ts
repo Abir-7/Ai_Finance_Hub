@@ -28,7 +28,19 @@ const getExpenseDataByDate = catchAsync(async (req, res) => {
   });
 });
 
+const getCurrentMonthExpense = catchAsync(async (req, res) => {
+  const result = await ExpenseService.getCurrentMonthExpense(req.user.userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User current month expense data successfully fetched",
+    data: result,
+  });
+});
+
 export const ExpenseController = {
   addExpense,
   getExpenseDataByDate,
+  getCurrentMonthExpense,
 };

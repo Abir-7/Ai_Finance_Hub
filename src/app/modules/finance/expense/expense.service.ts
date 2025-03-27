@@ -49,7 +49,32 @@ const getExpenseDataByDate = async (userId: string) => {
   return expensesGrouped;
 };
 
+const getCurrentMonthExpense = async (userId: string) => {
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endDate = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  );
+
+  const expenseData = await Expense.find({
+    user: userId,
+    createdAt: {
+      $gte: startDate,
+      $lte: endDate,
+    },
+  });
+
+  return expenseData;
+};
+
 export const ExpenseService = {
   addExpense,
   getExpenseDataByDate,
+  getCurrentMonthExpense,
 };

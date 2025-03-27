@@ -16,6 +16,7 @@ const userSchema = new Schema<IUser>({
   },
   isVerified: { type: Boolean, default: false },
   needToResetPass: { type: Boolean, default: false },
+  hasPremiumAccess: { type: Boolean, default: false },
 });
 
 userSchema.methods.comparePassword = async function (enteredPassword: string) {

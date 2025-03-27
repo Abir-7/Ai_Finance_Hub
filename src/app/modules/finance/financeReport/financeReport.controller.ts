@@ -41,7 +41,7 @@ const getPresentMonthSummary = catchAsync(async (req, res) => {
   sendResponse(res, {
     success: true,
     statusCode: status.OK,
-    message: "User present summary data successfully fetched.",
+    message: "User present month summary data successfully fetched.",
     data: result,
   });
 });
@@ -58,9 +58,22 @@ const expenseInPercentWithCategory = catchAsync(async (req, res) => {
   });
 });
 
+const getDataFromAi = catchAsync(async (req, res) => {
+  const result = await FinanceReportService.getDataFromAi(
+    req.user.userId,
+    req.body.text
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Ai Data is Given.",
+    data: result,
+  });
+});
 export const FinanceReportController = {
   getDailySummary,
   getWeeklySummary,
   getPresentMonthSummary,
   expenseInPercentWithCategory,
+  getDataFromAi,
 };

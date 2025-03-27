@@ -24,4 +24,10 @@ router.get(
   auth("USER"),
   FinanceReportController.expenseInPercentWithCategory
 );
+
+router.get(
+  "/get-finanse-data-from-ai",
+  auth("USER"),
+  FinanceReportController.getDataFromAi
+);
 export const FinanceReportRoute = router;

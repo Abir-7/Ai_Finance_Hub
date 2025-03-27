@@ -7,6 +7,7 @@ import { UserExpensePlanRoute } from "../modules/users/userExpensePlan/userExpen
 import { IncomeRoute } from "../modules/finance/income/income.route";
 import { ExpenseRoute } from "../modules/finance/expense/expense.route";
 import { FinanceReportRoute } from "../modules/finance/financeReport/financeReport.route";
+import { SubscriptionRoute } from "../modules/subscription/subscription.route";
 
 const router = Router();
 
@@ -18,6 +19,7 @@ const apiRoutes = [
   { path: "/income", route: IncomeRoute },
   { path: "/expense", route: ExpenseRoute },
   { path: "/finance-report", route: FinanceReportRoute },
+  { path: "/subscription", route: SubscriptionRoute },
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));

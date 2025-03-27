@@ -52,7 +52,32 @@ const getIncomeDataByDate = async (userId: string) => {
   return incomesGrouped;
 };
 
+const getCurrentMonthIncome = async (userId: string) => {
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endDate = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  );
+
+  const incomeData = await Income.find({
+    user: userId,
+    createdAt: {
+      $gte: startDate,
+      $lte: endDate,
+    },
+  });
+
+  return incomeData;
+};
+
 export const IncomeService = {
   addIncome,
   getIncomeDataByDate,
+  getCurrentMonthIncome,
 };
