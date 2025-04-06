@@ -22,6 +22,17 @@ const userLogin = catchAsync(async (req, res, next) => {
   });
 });
 
+const userData = catchAsync(async (req, res, next) => {
+  const result = await AuthService.userDetails(req.user.userId as string);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User data fetched successfully",
+    data: result,
+  });
+});
+
 const verifyUser = catchAsync(async (req, res, next) => {
   const { email, otp } = req.body;
   const result = await AuthService.verifyUser(email, Number(otp));
@@ -90,4 +101,5 @@ export const AuthController = {
   userLogin,
   getNewAccessToken,
   updatePassword,
+  userData,
 };

@@ -5,6 +5,7 @@ import { auth } from "../../middleware/auth/auth";
 const router = Router();
 
 router.get("/get-access-token", AuthController.getNewAccessToken);
+router.get("/me", auth("USER", "ADMIN"), AuthController.userData);
 
 router.post("/login", AuthController.userLogin);
 

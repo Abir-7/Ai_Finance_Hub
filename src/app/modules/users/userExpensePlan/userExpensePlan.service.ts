@@ -9,7 +9,7 @@ import { sumNumericValues } from "../../../utils/helper/sumNumericValues";
 import UserExpensePlan from "./userExpensePlan.model";
 import { IUserExpensePlan } from "./userExpensePlan.interface";
 
-const addUserExpencePlan = async (
+const addUserExpensePlan = async (
   data: IUserExpensePlan,
   userId: string
 ): Promise<IUserExpensePlan & { _id: Types.ObjectId }> => {
@@ -33,7 +33,7 @@ const addUserExpencePlan = async (
   return plan;
 };
 
-const updateUserExpencePlan = async (
+const updateUserExpensePlan = async (
   updatedData: Partial<IUserExpensePlan>,
   userId: string
 ): Promise<IUserExpensePlan & { _id: Types.ObjectId }> => {
@@ -76,7 +76,13 @@ const updateUserExpencePlan = async (
   return expensePlan;
 };
 
+const getUserExpenseLimit = async (userId: string) => {
+  const result = await UserExpensePlan.findOne({ user: userId });
+  return result;
+};
+
 export const UserExpensePlanService = {
-  addUserExpencePlan,
-  updateUserExpencePlan,
+  addUserExpensePlan,
+  updateUserExpensePlan,
+  getUserExpenseLimit,
 };

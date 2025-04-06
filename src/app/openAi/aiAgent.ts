@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { appConfig } from "../config";
 import { ExpenseService } from "../modules/finance/expense/expense.service";
+import { UserExpensePlanService } from "../modules/users/userExpensePlan/userExpensePlan.service";
 import { IncomeService } from "./../modules/finance/income/income.service";
 import OpenAI from "openai";
 
@@ -66,6 +67,20 @@ const tools: OpenAI.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "getMonthlyUserExpenseLimitData",
+      description: "Get expense limit in defferent categories of a user",
+      parameters: {
+        type: "object",
+        properties: {
+          userId: { type: "string", description: "The user's ID" },
+        },
+        required: ["userId"],
+      },
+    },
+  },
 ];
 
 export async function processQuery(userQuery: string) {
@@ -114,6 +129,11 @@ export async function processQuery(userQuery: string) {
                 break;
               case "getAllExpenseOfPresentMonth":
                 result = await ExpenseService.getCurrentMonthExpense(
+                  functionArgs.userId
+                );
+                break;
+              case "getMonthlyUserExpenseLimitData":
+                result = await UserExpensePlanService.getUserExpenseLimit(
                   functionArgs.userId
                 );
                 break;

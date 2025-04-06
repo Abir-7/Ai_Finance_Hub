@@ -5,7 +5,7 @@ import sendResponse from "../../../utils/sendResponse";
 import { UserExpensePlanService } from "./userExpensePlan.service";
 
 const addUserExpencePlan = catchAsync(async (req, res) => {
-  const result = await UserExpensePlanService.addUserExpencePlan(
+  const result = await UserExpensePlanService.addUserExpensePlan(
     req.body,
     req.user.userId
   );
@@ -18,8 +18,8 @@ const addUserExpencePlan = catchAsync(async (req, res) => {
   });
 });
 
-const updateUserExpencePlan = catchAsync(async (req, res) => {
-  const result = await UserExpensePlanService.updateUserExpencePlan(
+const updateUserExpensePlan = catchAsync(async (req, res) => {
+  const result = await UserExpensePlanService.updateUserExpensePlan(
     req.body,
     req.user.userId
   );
@@ -32,7 +32,21 @@ const updateUserExpencePlan = catchAsync(async (req, res) => {
   });
 });
 
+const getUserExpenseLimit = catchAsync(async (req, res) => {
+  const result = await UserExpensePlanService.getUserExpenseLimit(
+    req.user.userId
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User Expence limit fetched successfully.",
+    data: result,
+  });
+});
+
 export const UserExpensePlanController = {
   addUserExpencePlan,
-  updateUserExpencePlan,
+  updateUserExpensePlan,
+  getUserExpenseLimit,
 };

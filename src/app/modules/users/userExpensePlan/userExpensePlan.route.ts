@@ -20,7 +20,11 @@ router.patch(
   "/update-expense-plan",
   auth("USER"),
   zodValidator(zodUpdateUserExpensePlanSchema),
-  UserExpensePlanController.updateUserExpencePlan
+  UserExpensePlanController.updateUserExpensePlan
 );
-
+router.get(
+  "/get-expense-limit",
+  auth("USER"),
+  UserExpensePlanController.getUserExpenseLimit
+);
 export const UserExpensePlanRoute = router;

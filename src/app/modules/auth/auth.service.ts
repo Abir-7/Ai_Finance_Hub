@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import status from "http-status";
 import AppError from "../../errors/AppError";
@@ -59,6 +60,10 @@ const userLogin = async (loginData: {
       password: null,
     },
   };
+};
+const userDetails = async (userId: string) => {
+  const userData = await UserProfile.findOne({ user: userId }).populate("user");
+  return userData;
 };
 
 const verifyUser = async (
@@ -305,4 +310,5 @@ export const AuthService = {
   resetPassword,
   getNewAccessToken,
   updatePassword,
+  userDetails,
 };
