@@ -6,10 +6,9 @@ import { UserExpensePlanService } from "./userExpensePlan.service";
 
 const addUserExpencePlan = catchAsync(async (req, res) => {
   const result = await UserExpensePlanService.addUserExpensePlan(
-    req.body,
-    req.user.userId
+    req.body.data,
+    req.body.userEmail
   );
-
   sendResponse(res, {
     success: true,
     statusCode: status.OK,

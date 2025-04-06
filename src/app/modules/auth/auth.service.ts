@@ -40,13 +40,13 @@ const userLogin = async (loginData: {
     userRole: userData.role,
   };
 
-  const accessToken = jsonWebToken.generateToken(
+  const accessToken = await jsonWebToken.generateToken(
     jwtPayload,
     appConfig.jwt.jwt_access_secret as string,
     appConfig.jwt.jwt_access_exprire
   );
 
-  const refreshToken = jsonWebToken.generateToken(
+  const refreshToken = await jsonWebToken.generateToken(
     jwtPayload,
     appConfig.jwt.jwt_refresh_secret as string,
     appConfig.jwt.jwt_refresh_exprire
@@ -98,7 +98,7 @@ const verifyUser = async (
   let updatedUser;
   let token = null;
   if (user.user.isVerified) {
-    token = jsonWebToken.generateToken(
+    token = await jsonWebToken.generateToken(
       { userEmail: user.email },
       appConfig.jwt.jwt_access_secret as string,
       "10m"
@@ -205,7 +205,7 @@ const resetPassword = async (
     );
   }
 
-  const decode = jsonWebToken.verifyJwt(
+  const decode = await jsonWebToken.verifyJwt(
     token,
     appConfig.jwt.jwt_access_secret as string
   );
@@ -235,7 +235,7 @@ const getNewAccessToken = async (
   if (!refreshToken) {
     throw new AppError(status.UNAUTHORIZED, "Refresh token not found.");
   }
-  const decode = jsonWebToken.verifyJwt(
+  const decode = await jsonWebToken.verifyJwt(
     refreshToken,
     appConfig.jwt.jwt_refresh_secret as string
   );
@@ -249,7 +249,7 @@ const getNewAccessToken = async (
       userRole: userRole,
     };
 
-    const accessToken = jsonWebToken.generateToken(
+    const accessToken = await jsonWebToken.generateToken(
       jwtPayload,
       appConfig.jwt.jwt_access_secret as string,
       appConfig.jwt.jwt_access_exprire

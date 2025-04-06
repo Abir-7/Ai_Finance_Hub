@@ -71,7 +71,8 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "getMonthlyUserExpenseLimitData",
-      description: "Get expense limit in defferent categories of a user",
+      description:
+        "Get expense limit in defferent categories of a user. if value 0  thats mean user not set data. advice to add these data.",
       parameters: {
         type: "object",
         properties: {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import status from "http-status";
 import AppError from "../../../errors/AppError";
 import User from "../user/user.model";
@@ -11,11 +12,13 @@ import { IUserExpensePlan } from "./userExpensePlan.interface";
 
 const addUserExpensePlan = async (
   data: IUserExpensePlan,
-  userId: string
-): Promise<IUserExpensePlan & { _id: Types.ObjectId }> => {
+  userEmail: string
+) => {
+  console.log(data);
+
   const { balance, expenseLimit } = data;
 
-  const user = await User.findById(userId);
+  const user = await User.findOne({ email: userEmail });
   if (!user) {
     throw new AppError(status.NOT_FOUND, "User not found");
   }
@@ -28,7 +31,7 @@ const addUserExpensePlan = async (
   const plan = await UserExpensePlan.create({
     balance,
     expenseLimit: filteredData,
-    user: userId,
+    user: user._id,
   });
   return plan;
 };

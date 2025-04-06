@@ -3,7 +3,7 @@
 import jwt from "jsonwebtoken";
 import { IAuthData } from "../../interface/auth.interface";
 
-const verifyJwt = (token: string, secret: string) => {
+const verifyJwt = async (token: string, secret: string) => {
   try {
     return jwt.verify(token, secret) as IAuthData;
   } catch (error: any) {
@@ -11,7 +11,11 @@ const verifyJwt = (token: string, secret: string) => {
   }
 };
 
-const generateToken = (payload: object, secret: string, expiresIn: any) => {
+const generateToken = async (
+  payload: object,
+  secret: string,
+  expiresIn: any
+) => {
   try {
     const token = jwt.sign(payload, secret, {
       expiresIn,

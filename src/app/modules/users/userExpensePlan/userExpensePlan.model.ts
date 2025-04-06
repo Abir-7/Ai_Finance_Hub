@@ -4,15 +4,15 @@ import { IUserExpensePlan } from "./userExpensePlan.interface";
 const userExpensePlanSchema = new Schema<IUserExpensePlan>(
   {
     balance: {
-      income: { type: Number, required: true },
-      expense: { type: Number, required: true },
+      income: { type: Number, default: 0 },
+      expense: { type: Number, default: 0 },
     },
     expenseLimit: {
-      food: { type: Number, required: true },
-      apparel: { type: Number, required: true },
-      rent: { type: Number, required: true },
-      transport: { type: Number, required: true },
-      health: { type: Number, required: true },
+      food: { type: Number, default: 0 },
+      apparel: { type: Number, default: 0 },
+      rent: { type: Number, default: 0 },
+      transport: { type: Number, default: 0 },
+      health: { type: Number, default: 0 },
       education: { type: Number, default: 0 },
       social: { type: Number, default: 0 },
       pets: { type: Number, default: 0 },
