@@ -3,12 +3,25 @@ import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 import Expense from "./expense.model";
 import { IExpense } from "./expense.interface";
 import mongoose from "mongoose";
+import UserExpensePlan from "../../users/userExpensePlan/userExpensePlan.model";
+import AppError from "../../../errors/AppError";
 
 const addExpense = async (
   imageArray: Express.Multer.File[],
   expenseData: IExpense,
   userId: string
 ): Promise<IExpense> => {
+  const expenseLimitData = await UserExpensePlan.findOne({
+    user: userId,
+  }).lean();
+
+  if (
+    (expenseLimitData?.balance?.expense ?? 0) > 0 ||
+    (expenseLimitData?.balance?.income ?? 0) > 0
+  ) {
+    throw new AppError(500, "Update your Expense plan first.");
+  }
+
   const images = [];
   for (let i = 0; i < imageArray.length; i++) {
     const path = getRelativePath(imageArray[i].path);

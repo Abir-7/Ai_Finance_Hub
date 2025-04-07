@@ -373,23 +373,21 @@ const expenseInPercentWithCategory = async (userId: string) => {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-  // Assume `userId` is available (as a string or ObjectId)
   const data = await Expense.aggregate([
-    // Filter expenses for current month and specific user
     {
       $match: {
         user: new mongoose.Types.ObjectId(userId),
         createdAt: { $gte: startOfMonth, $lte: endOfMonth },
       },
     },
-    // Group expenses by category and sum amounts
+
     {
       $group: {
         _id: "$category",
         totalExpense: { $sum: "$amount" },
       },
     },
-    // Lookup user's expense plan (assumes collection name is "userbalanceplans")
+
     {
       $lookup: {
         from: "userbalanceplans",
@@ -401,7 +399,7 @@ const expenseInPercentWithCategory = async (userId: string) => {
         as: "userPlan",
       },
     },
-    // Unwind the array from the lookup (since there's one plan per user)
+
     { $unwind: "$userPlan" },
     // Add a field 'limit' based on the category using $switch
     {
@@ -468,7 +466,9 @@ const expenseInPercentWithCategory = async (userId: string) => {
           $cond: {
             if: { $gt: ["$limit", 0] },
             then: {
-              $multiply: [{ $divide: ["$totalExpense", "$limit"] }, 100],
+              $toInt: {
+                $multiply: [{ $divide: ["$totalExpense", "$limit"] }, 100],
+              },
             },
             else: 0,
           },

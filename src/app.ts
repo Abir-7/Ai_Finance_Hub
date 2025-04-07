@@ -5,6 +5,7 @@ import http from "http";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { noRouteFound } from "./app/utils/noRouteFound";
 import cookieParser from "cookie-parser";
+import path from "path";
 const app = express();
 
 const corsOption = {
@@ -12,6 +13,7 @@ const corsOption = {
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   credentials: true,
 };
+app.use(express.static(path.join(process.cwd(), "uploads")));
 
 app.use(cors(corsOption));
 app.use(cookieParser());
@@ -23,7 +25,7 @@ app.use("/api", router);
 app.get("/", (req, res) => {
   res.send("Hello World! This app name is Ai_Finance_Hub");
 });
-app.use("/uploads", express.static("uploads"));
+
 app.use(globalErrorHandler);
 app.use(noRouteFound);
 

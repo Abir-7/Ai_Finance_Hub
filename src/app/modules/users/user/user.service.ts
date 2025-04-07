@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import getExpiryTime from "../../../utils/helper/getExpiryTime";
 import getHashedPassword from "../../../utils/helper/getHashedPassword";
 import getOtp from "../../../utils/helper/getOtp";

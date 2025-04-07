@@ -1,3 +1,4 @@
+import { CourseRouter } from "./../modules/course/course.route";
 import { Router } from "express";
 import { UserRoute } from "../modules/users/user/user.route";
 import { AuthRoute } from "../modules/auth/auth.route";
@@ -8,6 +9,7 @@ import { IncomeRoute } from "../modules/finance/income/income.route";
 import { ExpenseRoute } from "../modules/finance/expense/expense.route";
 import { FinanceReportRoute } from "../modules/finance/financeReport/financeReport.route";
 import { SubscriptionRoute } from "../modules/subscription/subscription.route";
+import { NotificationRouter } from "../modules/notification/notification.route";
 
 const router = Router();
 
@@ -20,6 +22,8 @@ const apiRoutes = [
   { path: "/expense", route: ExpenseRoute },
   { path: "/finance-report", route: FinanceReportRoute },
   { path: "/subscription", route: SubscriptionRoute },
+  { path: "/course", route: CourseRouter },
+  { path: "/notifications", route: NotificationRouter },
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));

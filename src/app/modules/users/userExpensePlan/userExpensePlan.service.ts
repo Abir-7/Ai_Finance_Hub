@@ -14,8 +14,6 @@ const addUserExpensePlan = async (
   data: IUserExpensePlan,
   userEmail: string
 ) => {
-  console.log(data);
-
   const { balance, expenseLimit } = data;
 
   const user = await User.findOne({ email: userEmail });
