@@ -8,7 +8,10 @@ import { Types } from "mongoose";
 // Create a new notification
 const createNotification = catchAsync(async (req: Request, res: Response) => {
   const notificationData = req.body;
-  const result = await NotificationService.createNotification(notificationData);
+  const result = await NotificationService.createNotification(
+    notificationData,
+    req.user.userId
+  );
   sendResponse(res, {
     data: result,
     success: true,

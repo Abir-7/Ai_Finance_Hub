@@ -1,5 +1,9 @@
+import { Types } from "mongoose";
+import { TCategory } from "../users/userExpensePlan/userExpensePlan.interface";
+
 export interface INotification {
   title: string;
   description: string;
-  image: string;
+  category: TCategory;
+  user: Types.ObjectId;
 }

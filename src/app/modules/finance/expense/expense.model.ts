@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Schema } from "mongoose";
 import { categories } from "../../users/userExpensePlan/userExpensePlan.interface";
 import { IExpense, method } from "./expense.interface";

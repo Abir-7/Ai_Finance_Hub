@@ -26,6 +26,10 @@ const addUserExpensePlan = async (
 
   balance.expense = total;
 
+  if (balance.expense > balance.income) {
+    throw new AppError(500, "Expense cannot be greater than income.");
+  }
+
   const plan = await UserExpensePlan.create({
     balance,
     expenseLimit: filteredData,

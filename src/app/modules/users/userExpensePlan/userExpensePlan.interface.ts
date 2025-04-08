@@ -23,7 +23,7 @@ export interface IUserExpensePlan {
 
 export const categories = [
   "food",
-  "social Life",
+  "social",
   "pets",
   "education",
   "gift",

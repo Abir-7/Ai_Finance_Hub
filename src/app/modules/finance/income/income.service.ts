@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 import { IIncome } from "./income.interface";
 import Income from "./income.model";
+import unlinkFile from "../../../utils/helper/unlinkFiles";
 
 const addIncome = async (
   imageArray: Express.Multer.File[],
@@ -19,7 +20,16 @@ const addIncome = async (
     incomeData.description.images = images;
   }
 
-  const result = await Income.create({ ...incomeData, user: userId });
+  const result = await Income.create({
+    ...incomeData,
+    source: incomeData.source.toLowerCase(),
+    method: incomeData.method.toLowerCase(),
+    user: userId,
+  });
+
+  if (!result) {
+    images.map((path) => unlinkFile(path));
+  }
 
   return result;
 };

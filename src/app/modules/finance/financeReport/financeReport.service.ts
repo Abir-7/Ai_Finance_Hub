@@ -362,8 +362,8 @@ const presentMonthSummary = async (userId: string) => {
     totalExpense,
     availableMoney,
     todayExpense,
-    expensePercentage,
-    availablePercentage,
+    expensePercentage: Math.round(expensePercentage),
+    availablePercentage: Math.round(availablePercentage),
   };
 };
 

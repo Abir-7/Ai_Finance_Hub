@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import { INotification } from "./notification.interface";
+import { categories } from "../users/userExpensePlan/userExpensePlan.interface";
 
 const notificationSchema = new Schema<INotification>(
   {
@@ -12,10 +13,11 @@ const notificationSchema = new Schema<INotification>(
       type: String,
       required: true,
     },
-    image: {
-      type: String,
-      required: false, // optional if some don't include image
+    user: {
+      type: Schema.Types.ObjectId,
+      required: true,
     },
+    category: { type: String, enum: categories, required: true },
   },
   {
     timestamps: true, // adds createdAt & updatedAt

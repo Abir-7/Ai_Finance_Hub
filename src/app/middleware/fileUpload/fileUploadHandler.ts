@@ -64,7 +64,7 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: FileFilterCallback
 ) => {
-  logger.info("Uploading:", file.originalname, file.mimetype);
+  logger.info(`Uploading:${(file.originalname, file.mimetype)}`);
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {

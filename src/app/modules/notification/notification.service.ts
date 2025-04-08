@@ -4,9 +4,10 @@ import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
 
 const createNotification = async (
-  notificationData: INotification
+  notificationData: INotification,
+  userId: string
 ): Promise<INotification> => {
-  const notification = new Notification(notificationData);
+  const notification = new Notification({ ...notificationData, user: userId });
   return await notification.save();
 };
 
