@@ -38,4 +38,9 @@ export const appConfig = {
   openAi: {
     key: process.env.GPT_KEY,
   },
+  goCardLess: {
+    id: process.env.GCL_SECRETE_ID,
+    key: process.env.GCL_SECRETE_KEY,
+    baseUrl: process.env.GCL_BASE_URL,
+  },
 };

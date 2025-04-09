@@ -10,6 +10,7 @@ import { ExpenseRoute } from "../modules/finance/expense/expense.route";
 import { FinanceReportRoute } from "../modules/finance/financeReport/financeReport.route";
 import { SubscriptionRoute } from "../modules/subscription/subscription.route";
 import { NotificationRouter } from "../modules/notification/notification.route";
+import { BankRoute } from "../modules/bank/gocardless.router";
 
 const router = Router();
 
@@ -24,6 +25,7 @@ const apiRoutes = [
   { path: "/subscription", route: SubscriptionRoute },
   { path: "/course", route: CourseRouter },
   { path: "/notifications", route: NotificationRouter },
+  { path: "/bank", route: BankRoute },
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));
