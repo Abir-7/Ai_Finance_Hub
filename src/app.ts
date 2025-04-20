@@ -13,7 +13,6 @@ const corsOption = {
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   credentials: true,
 };
-app.use(express.static(path.join(process.cwd(), "uploads")));
 
 app.use(cors(corsOption));
 app.use(cookieParser());
@@ -21,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
-
+app.use(express.static(path.join(process.cwd(), "uploads")));
 app.get("/", (req, res) => {
   res.send("Hello World! This app name is Ai_Finance_Hub");
 });

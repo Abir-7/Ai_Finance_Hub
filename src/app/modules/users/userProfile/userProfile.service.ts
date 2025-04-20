@@ -5,6 +5,7 @@ import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 import { UserProfile } from "./userProfile.model";
 import { removeFalsyFields } from "../../../utils/helper/removeFalsyField";
 import { IUserProfile } from "./userProfile.interface";
+import { IAuthData } from "../../../interface/auth.interface";
 
 const updateUserProfileImage = async (
   path: string,
@@ -27,13 +28,17 @@ const updateUserProfileImage = async (
 
 const updateUserProfileData = async (
   userdata: Partial<IUserProfile>,
-  email: string
+  user: IAuthData
 ): Promise<IUserProfile | null> => {
   const data = removeFalsyFields(userdata);
 
+  const email = user.userEmail;
+  console.log(user, email, "____________________________");
   const updated = await UserProfile.findOneAndUpdate({ email: email }, data, {
     new: true,
   });
+
+  console.log(updated);
 
   if (!updated) {
     throw new AppError(status.BAD_REQUEST, "Failed to update user info.");

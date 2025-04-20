@@ -2,7 +2,8 @@ import status from "http-status";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { FinanceReportService } from "./financeReport.service";
-
+import Tesseract from "tesseract.js";
+import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 const getDailySummary = catchAsync(async (req, res) => {
   const result = await FinanceReportService.getDailySummary(
     req.user.userId,
@@ -59,9 +60,22 @@ const expenseInPercentWithCategory = catchAsync(async (req, res) => {
 });
 
 const getDataFromAi = catchAsync(async (req, res) => {
+  let text1 = "";
+
+  if (req.file) {
+    const path = getRelativePath(req.file?.path as string);
+
+    const imageUrl = `http://192.168.10.18:5000/${path}`;
+
+    await Tesseract.recognize(imageUrl, "eng").then(({ data: { text } }) => {
+      text1 = text;
+    });
+  }
+
   const result = await FinanceReportService.getDataFromAi(
     req.user.userId,
-    req.body.text
+    req.body.text,
+    text1
   );
   sendResponse(res, {
     success: true,

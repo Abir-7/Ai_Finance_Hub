@@ -2,13 +2,13 @@ import { Schema, model } from "mongoose";
 import { IUserProfile, profession } from "./userProfile.interface";
 
 const userProfileSchema = new Schema<IUserProfile>({
-  fullName: { type: String },
-  nickname: { type: String },
-  dateOfBirth: { type: Date },
+  fullName: { type: String, default: null },
+  nickname: { type: String, default: null },
+  dateOfBirth: { type: String, default: null },
   email: { type: String, unique: true },
-  phone: { type: String },
-  address: { type: String },
-  image: { type: String },
+  phone: { type: String, default: null },
+  address: { type: String, default: null },
+  image: { type: String, default: null },
   user: { type: Schema.Types.ObjectId, ref: "User", unique: true },
   profession: {
     type: String,

@@ -6,16 +6,6 @@
     "auditLog": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\.94229e8287ed61de13fb453cf9665ca76f1c7a28-audit.json",
     "files": [
         {
-            "date": 1742014376499,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-03-15-exceptions.log",
-            "hash": "4ca8d2b7508708018b55afea287657041453301c1db578426f4cda4c379d7620"
-        },
-        {
-            "date": 1742090584952,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-03-16-exceptions.log",
-            "hash": "cedbcfcb2fbf89ecd089821fe1150db9691636a0211b2b0cf271e68a2dc62dd9"
-        },
-        {
             "date": 1742177985396,
             "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-03-17-exceptions.log",
             "hash": "012b7bca431decb7ffd1490fc3c6ad014041f71fd4a1881a37017102543b1da5"
@@ -79,6 +69,36 @@
             "date": 1744169296476,
             "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-09-exceptions.log",
             "hash": "5ede9edb078e04899eaca1a29b65f77106a16ce9268ab6eb7a1ce60d4c8b6ee7"
+        },
+        {
+            "date": 1744250522992,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-10-exceptions.log",
+            "hash": "3cf85911a8842880d1cb7dcea8000b86bd180b5b489d6a102db4d9a91a9c0aa6"
+        },
+        {
+            "date": 1744428432260,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-12-exceptions.log",
+            "hash": "a275ceda810cfb4db547b9f1f507e587aa375972fce813ab055d7c86e393f74c"
+        },
+        {
+            "date": 1744508503342,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-13-exceptions.log",
+            "hash": "8a40fad946e13f5b1f1f85694f5102ccb1c38b8fe69d03b3f0c9ac1f2a46ba39"
+        },
+        {
+            "date": 1744594710536,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-14-exceptions.log",
+            "hash": "1e8ff77b82f750e9a72ecc517f2bc20c07cd09db79d5da8c9413538fc318a274"
+        },
+        {
+            "date": 1744685643057,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-15-exceptions.log",
+            "hash": "93e2c8bb4d8793d560c48cf8663c0cf9765f92193632fb6d7c7c46eb495c0438"
+        },
+        {
+            "date": 1744766821307,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-16-exceptions.log",
+            "hash": "4fbfe71ad4bfb0f2f7ad795c3aa58596c21a5a61d321d53d16c194d954951a13"
         }
     ],
     "hashType": "sha256"

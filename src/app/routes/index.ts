@@ -10,7 +10,10 @@ import { ExpenseRoute } from "../modules/finance/expense/expense.route";
 import { FinanceReportRoute } from "../modules/finance/financeReport/financeReport.route";
 import { SubscriptionRoute } from "../modules/subscription/subscription.route";
 import { NotificationRouter } from "../modules/notification/notification.route";
-import { BankRoute } from "../modules/bank/gocardless.router";
+
+import { TintRoute } from "../modules/bank/tink/tink.route";
+import { BankRoute } from "../modules/bank/gocardless/gocardless.router";
+import { PlaidRoute } from "../modules/bank/plaid/plaid.route";
 
 const router = Router();
 
@@ -25,7 +28,9 @@ const apiRoutes = [
   { path: "/subscription", route: SubscriptionRoute },
   { path: "/course", route: CourseRouter },
   { path: "/notifications", route: NotificationRouter },
-  { path: "/bank", route: BankRoute },
+  { path: "/tink-bank", route: TintRoute },
+  { path: "/gocardless-bank", route: BankRoute },
+  { path: "/plaid-bank", route: PlaidRoute },
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));

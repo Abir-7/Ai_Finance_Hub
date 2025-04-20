@@ -480,13 +480,58 @@ const expenseInPercentWithCategory = async (userId: string) => {
   return data;
 };
 
-const getDataFromAi = async (userId: string, text: string) => {
+const getDataFromAi = async (
+  userId: string,
+  text: string,
+  imageText: string
+) => {
+  if (imageText) {
+    const data = await processQuery(
+      `${text}. Data: ${imageText}. 
+
+  **Follow:**   
+  If the user requests to save or store the data, analyze the type and create the JSON based on the type then call tools to save:
+
+  For **expense** data format:
+  {
+    amount: { type: Number, required: true },
+    category: { type: String, enum: categories, required: true },
+    method: { type: String, enum: method, required: true },
+    note: { type: String },
+    description: {
+      images: [{ type: String }],
+      info: { type: String, required: true },
+    },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  }
+
+  For **income** data format:
+  {
+    amount: { type: Number, required: true },
+    source: { type: String, enum: source, required: true },
+    method: { type: String, enum: method, required: true },
+    note: { type: String },
+    description: {
+      images: [{ type: String }],
+      info: { type: String, required: true },
+    },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  }
+
+  User ID: ${userId}
+
+  if tools not found. then say tool not found.
+`
+    );
+    return data;
+  }
+
   const prompt = `
 ${text}
 User ID: ${userId}
 
 You are a financial assistant.
-Only respond to finance-related questions (budgeting, expenses, income, savings, etc.)
+Only respond to finance-related task. (budgeting, expenses, income, savings,store to db, etc.)
 
 **DO NOT:**
 1. Return or expose raw image links from the database.

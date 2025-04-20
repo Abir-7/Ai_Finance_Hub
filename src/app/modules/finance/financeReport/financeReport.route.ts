@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { auth } from "../../../middleware/auth/auth";
 import { FinanceReportController } from "./financeReport.controller";
+import { upload } from "../../../middleware/fileUpload/fileUploadHandler";
+import { parseDataField } from "../../../middleware/fileUpload/parseDataField";
 
 const router = Router();
 router.get(
@@ -28,6 +30,8 @@ router.get(
 router.get(
   "/get-finanse-data-from-ai",
   auth("USER"),
+  upload.single("image"),
+  parseDataField("data"),
   FinanceReportController.getDataFromAi
 );
 export const FinanceReportRoute = router;

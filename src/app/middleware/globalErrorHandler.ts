@@ -91,9 +91,7 @@ export const globalErrorHandler = async (
       },
     ];
   }
-
-  console.log(err?.response?.data);
-
+  console.log(err);
   logger.error(err);
   res.status(statusCode).json({
     success: false,

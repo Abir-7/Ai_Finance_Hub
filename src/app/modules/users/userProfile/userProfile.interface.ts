@@ -4,7 +4,7 @@ export interface IUserProfile {
   _id: string;
   fullName: string;
   nickname?: string;
-  dateOfBirth?: Date;
+  dateOfBirth?: string;
   email: string;
   phone?: string;
   address?: string;

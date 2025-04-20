@@ -9,6 +9,7 @@ export const appConfig = {
     port: process.env.PORT,
     node_env: process.env.NODE_ENV,
     ip: process.env.IP_ADDRESS,
+    baseUrl: process.env.BASE_URL,
   },
 
   jwt: {
@@ -42,5 +43,18 @@ export const appConfig = {
     id: process.env.GCL_SECRETE_ID,
     key: process.env.GCL_SECRETE_KEY,
     baseUrl: process.env.GCL_BASE_URL,
+  },
+  tink: {
+    id: process.env.TINK_ID,
+    key: process.env.TINK_SECRETE,
+    baseUrl: process.env.TINK_BASE_URL,
+    bankTransectionUrl: process.env.TINK_BANK_TRANSECTION_URL,
+    bankIncomeUrl: process.env.TINK_BANK_INCOME_URL,
+  },
+  plaid: {
+    id: process.env.PLAID_CLIENT_ID,
+    key: process.env.PLAID_SECRET,
+    plaid_env: process.env.PLAID_ENV,
+    plaidBaseUrl: process.env.PLAID_API_URL,
   },
 };
