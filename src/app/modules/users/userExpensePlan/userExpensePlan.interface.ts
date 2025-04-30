@@ -33,6 +33,12 @@ export const categories = [
   "beauty",
   "health",
   "other",
+  "shopping",
+  "groceries",
+  "housing",
+  "entertainment",
+  "bills",
+  "utilities",
 ] as const;
 
 export type TCategory = (typeof categories)[number];

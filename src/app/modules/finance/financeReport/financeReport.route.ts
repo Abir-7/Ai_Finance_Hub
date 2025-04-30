@@ -34,4 +34,10 @@ router.get(
   parseDataField("data"),
   FinanceReportController.getDataFromAi
 );
+
+router.get(
+  "/save-finanse-data-by-ai",
+  auth("USER"),
+  FinanceReportController.saveDataByAi
+);
 export const FinanceReportRoute = router;

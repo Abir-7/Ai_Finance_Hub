@@ -1,16 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { appConfig } from "../config";
 import { ExpenseService } from "../modules/finance/expense/expense.service";
-import { categories } from "../modules/users/userExpensePlan/userExpensePlan.interface";
+
 import { UserExpensePlanService } from "../modules/users/userExpensePlan/userExpensePlan.service";
-import { IncomeService } from "./../modules/finance/income/income.service";
+import { IncomeService } from "../modules/finance/income/income.service";
 import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: appConfig.openAi.key,
-});
-
-// Define financial tools
+import { openai } from "./openAi";
 const tools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
@@ -80,70 +74,6 @@ const tools: OpenAI.ChatCompletionTool[] = [
           userId: { type: "string", description: "The user's ID" },
         },
         required: ["userId"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "saveExpenseData",
-      description: "Save user's expense data.",
-      parameters: {
-        type: "object",
-        properties: {
-          userId: {
-            type: "string",
-            description:
-              "The unique identifier of the user submitting the expense data.",
-          },
-          expenseData: {
-            type: "object",
-            description: "Data related to the user's expense.",
-            properties: {
-              amount: {
-                type: "number",
-                description: "The amount of the expense.",
-              },
-              category: {
-                type: "string",
-                enum: categories,
-                description:
-                  "The category for the expense (e.g., food, transportation).",
-              },
-              method: {
-                type: "string",
-                enum: ["cash", "card"],
-                description:
-                  "The method of payment (e.g., cash, card, online).",
-              },
-              note: {
-                type: "string",
-                description: "An optional note or comment about the expense.",
-              },
-              description: {
-                type: "object",
-                properties: {
-                  images: {
-                    type: "array",
-                    description:
-                      "An array of image paths or URLs related to the expense.",
-                    items: {
-                      type: "string",
-                    },
-                  },
-                  info: {
-                    type: "string",
-                    description:
-                      "Additional information or details about the expense.",
-                  },
-                },
-                required: ["info"],
-              },
-            },
-            required: ["amount", "category", "method", "description"],
-          },
-        },
-        required: ["userId", "expenseData"],
       },
     },
   },
@@ -228,7 +158,6 @@ export async function processQuery(userQuery: string) {
           }
         })
       );
-
       messages.push(...toolResponses);
     } else {
       finalResponse = message.content || "";
@@ -238,3 +167,5 @@ export async function processQuery(userQuery: string) {
 
   return finalResponse;
 }
+
+// ai will respose to user by read info from data base

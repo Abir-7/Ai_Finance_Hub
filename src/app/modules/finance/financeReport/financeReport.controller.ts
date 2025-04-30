@@ -84,10 +84,24 @@ const getDataFromAi = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+const saveDataByAi = catchAsync(async (req, res) => {
+  const result = await FinanceReportService.saveDataByAi(
+    req.body.transactions,
+    req.user.userId
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Ai Data is Given.",
+    data: result,
+  });
+});
 export const FinanceReportController = {
   getDailySummary,
   getWeeklySummary,
   getPresentMonthSummary,
   expenseInPercentWithCategory,
   getDataFromAi,
+  saveDataByAi,
 };

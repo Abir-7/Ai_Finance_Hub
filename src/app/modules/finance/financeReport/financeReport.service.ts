@@ -1,10 +1,15 @@
+/* eslint-disable arrow-body-style */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import mongoose from "mongoose";
 
 import { TMethod } from "../income/income.interface";
 import Income from "../income/income.model";
 import Expense from "../expense/expense.model";
-import { processQuery } from "../../../openAi/aiAgent";
+import { processQuery } from "../../../openAi/chatAgent";
+import {
+  ITransaction,
+  processTransactions,
+} from "../../../openAi/aiDbWriteAgent";
 
 const getDailySummary = async (
   userId: string,
@@ -531,7 +536,7 @@ ${text}
 User ID: ${userId}
 
 You are a financial assistant.
-Only respond to finance-related task. (budgeting, expenses, income, savings,store to db, etc.)
+Only respond to finance-related task. (budgeting, expenses, income, savings,save expense data to db, etc.)
 
 **DO NOT:**
 1. Return or expose raw image links from the database.
@@ -545,10 +550,15 @@ If a non-financial topic is detected, reply with:
   return data;
 };
 
+const saveDataByAi = async (transections: ITransaction[], userId: string) => {
+  return await processTransactions({ transactions: transections }, userId);
+};
+
 export const FinanceReportService = {
   getDailySummary,
   getWeeklySummary,
   presentMonthSummary,
   expenseInPercentWithCategory,
   getDataFromAi,
+  saveDataByAi,
 };

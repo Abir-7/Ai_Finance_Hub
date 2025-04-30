@@ -65,6 +65,8 @@ export const addExpense = async (
 
   const images = [];
 
+  expenseData.amount = Math.abs(expenseData.amount);
+
   try {
     // 💥 Expense Limit Check
     const expenseLimitData = await UserExpensePlan.findOne({
@@ -98,17 +100,10 @@ export const addExpense = async (
       user: userId,
       createdAt: { $gte: startOfMonth, $lte: endOfMonth },
     }).session(session);
-
+    console.log(present);
     if (present) {
       const newAvailable = present.availableMoney - expenseData.amount;
-
-      if (newAvailable < 0) {
-        throw new AppError(
-          400,
-          `Not enough available balance for this expense. gap:${newAvailable}`
-        );
-      }
-
+      console.log(expenseData, userId);
       present.totalExpense += expenseData.amount;
       present.availableMoney = newAvailable;
       await present.save({ session });
