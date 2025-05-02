@@ -4,6 +4,7 @@ import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 import { IIncome } from "./income.interface";
 import Income from "./income.model";
 import unlinkFile from "../../../utils/helper/unlinkFiles";
+import dayjs from "dayjs";
 
 const addIncome = async (
   imageArray: Express.Multer.File[],
@@ -18,6 +19,32 @@ const addIncome = async (
 
   if (images.length !== 0) {
     incomeData.description.images = images;
+  }
+
+  if (incomeData.source === "salary") {
+    const startOfMonth = dayjs().startOf("month").toDate();
+    const endOfMonth = dayjs().endOf("month").toDate();
+
+    const result = await Income.findOneAndUpdate(
+      {
+        amount: Number(incomeData.amount),
+        source: "salary",
+        user: userId,
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+      },
+      {
+        ...incomeData,
+        source: incomeData.source.toLowerCase(),
+        method: incomeData.method.toLowerCase(),
+        user: userId,
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
+    );
+    return result;
   }
 
   const result = await Income.create({
