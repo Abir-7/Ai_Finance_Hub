@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Schema } from "mongoose";
-import { IIncome, method, source } from "./income.interface";
+import { IIncome, method, sources } from "./income.interface";
 
 const IncomeSchema = new Schema<IIncome>(
   {
     amount: { type: Number, required: true },
-    source: { type: String, enum: source, required: true },
+    source: { type: String, enum: sources, required: true },
     method: { type: String, enum: method, required: true },
     note: { type: String },
     description: {

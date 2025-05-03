@@ -6,7 +6,8 @@ import { UserExpensePlanService } from "../modules/users/userExpensePlan/userExp
 import { IncomeService } from "../modules/finance/income/income.service";
 import OpenAI from "openai";
 import { openai } from "./openAi";
-import { categories } from "../modules/users/userExpensePlan/userExpensePlan.interface";
+import { categories } from "../modules/finance/expense/expense.interface";
+
 const tools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
@@ -90,7 +91,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
           userId: { type: "string" },
           expenseData: {
             type: "object",
-            description: `Expense data to save.pick category from this: ${categories} . method :card or  cash `,
+            description: `Expense data to save.pick category from this: ${categories}. method: card or cash`,
             properties: {
               amount: { type: "number" },
               category: { type: "string" },

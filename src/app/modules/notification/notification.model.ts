@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { INotification } from "./notification.interface";
-import { categories } from "../users/userExpensePlan/userExpensePlan.interface";
+import { categories } from "../finance/expense/expense.interface";
 
 const notificationSchema = new Schema<INotification>(
   {

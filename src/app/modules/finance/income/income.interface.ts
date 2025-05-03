@@ -12,8 +12,15 @@ export interface IIncome {
   user: Types.ObjectId;
 }
 
-export const source = ["salary", "petty cash", "bonus", "other"] as const;
-type TSource = (typeof source)[number];
+export const sources = [
+  "salary",
+  "freelance",
+  "investments",
+  "gifts",
+  "refunds",
+  "other",
+] as const;
+type TSource = (typeof sources)[number];
 
 export const method = ["cash", "bank"] as const;
 export type TMethod = (typeof method)[number];

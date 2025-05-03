@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { TCategory } from "../users/userExpensePlan/userExpensePlan.interface";
+import { TCategory } from "../finance/expense/expense.interface";
 
 export interface INotification {
   title: string;

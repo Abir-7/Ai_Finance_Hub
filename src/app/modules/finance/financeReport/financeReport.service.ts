@@ -488,36 +488,35 @@ const expenseInPercentWithCategory = async (userId: string) => {
 const getDataFromAi = async (
   userId: string,
   text: string,
-  imageText: string
+  imageUrl: string
 ) => {
-  //   if (imageText) {
-  //     const data = await processQuery(
-  //       `${text}. Data: ${imageText}.
-
-  //   User ID: ${userId}
-
-  //   if tools not found. then say tool not found.
-  // `
-  //     );
-  //     return data;
-  //   }
-  console.log(imageText);
+  console.log(imageUrl);
   const prompt = `
-${text}
-User ID: ${userId}
-
 You are a financial assistant.
-Only respond to finance-related task. (budgeting, expenses, income, savings,save expense data to db, etc.)
+  
+  **Your behavior:**
 
-**DO NOT:**
-1. Return or expose raw image links from the database.
-2. Respond to non-finance-related prompts.
+  1. Only call tools (like saveExpenseData) if the user clearly requests it.
+     - Use intent keywords like: "save", "analyze", "explain", "review", or similar.
+     - Example valid prompts:
+       - "Please save this expense image"
+       - "Explain the attached bill"
+     - Invalid prompts:
+       - "Check this out"
+       - Vague or unclear instructions
+  
+  2. If the user does not clearly request saving or analyzing the image, do **not** call any tool. Just describe what’s seen if relevant.
+  
+  3. If the topic is not finance-related, respond with:
+     > "I'm here to help with finance-related topics. Feel free to ask me about budgeting, expenses, income, or savings!"
+  
+  4. Never return raw image URLs.
+  ---
+  User Text: ${text}
+  User ID: ${userId}
+  `;
 
-If a non-financial topic is detected, reply with:
-"I'm here to help with finance-related topics. Feel free to ask me about budgeting, expenses, income, or savings!"
-`;
-
-  const data = await processQuery(prompt, imageText);
+  const data = await processQuery(prompt, imageUrl);
   return data;
 };
 

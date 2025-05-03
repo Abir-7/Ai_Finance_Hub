@@ -1,10 +1,9 @@
-import { TCategory } from "./../../users/userExpensePlan/userExpensePlan.interface";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 import Expense from "./expense.model";
-import { IExpense } from "./expense.interface";
+import { IExpense, TCategory } from "./expense.interface";
 import mongoose, { Mongoose } from "mongoose";
 import UserExpensePlan from "../../users/userExpensePlan/userExpensePlan.model";
 import AppError from "../../../errors/AppError";

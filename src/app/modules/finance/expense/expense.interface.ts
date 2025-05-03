@@ -1,5 +1,4 @@
 import { Types } from "mongoose";
-import { TCategory } from "../../users/userExpensePlan/userExpensePlan.interface";
 
 export interface IExpense {
   amount: number;
@@ -15,3 +14,20 @@ export interface IExpense {
 
 export const method = ["cash", "card"] as const;
 type TMethod = (typeof method)[number];
+
+export const categories = [
+  "food & dining",
+  "transportation",
+  "utilities",
+  "health & medical",
+  "entertainment",
+  "shopping",
+  "education",
+  "travel",
+  "rent/mortgage",
+  "personal care",
+  "insurance",
+  "other",
+] as const;
+
+export type TCategory = (typeof categories)[number];

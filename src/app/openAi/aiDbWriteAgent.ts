@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-useless-escape */
+
 import mongoose from "mongoose";
 import { IncomeService } from "./../modules/finance/income/income.service";
 import { ExpenseService } from "../modules/finance/expense/expense.service";
@@ -39,26 +39,28 @@ const convertAmount = (amount: ITransaction["amount"]): number => {
 };
 
 const ALLOWED_EXPENSE_CATEGORIES = [
-  "food",
-  "social",
-  "pets",
-  "education",
-  "gift",
-  "transport",
-  "rent",
-  "apparel",
-  "beauty",
-  "health",
-  "other",
-  "shopping",
-  "groceries",
-  "housing",
-  "entertainment",
-  "bills",
+  "food & dining",
+  "transportation",
   "utilities",
+  "health & medical",
+  "entertainment",
+  "shopping",
+  "education",
+  "travel",
+  "rent/mortgage",
+  "personal care",
+  "insurance",
+  "other",
 ];
 
-const ALLOWED_INCOME_SOURCES = ["salary", "petty cash", "bonus", "other"];
+const ALLOWED_INCOME_SOURCES = [
+  "salary",
+  "freelance",
+  "investments",
+  "gifts",
+  "refunds",
+  "other",
+];
 
 const buildPrompt = (transactions: ITransaction[]) => {
   const simplified = transactions.map((t) => ({
@@ -162,6 +164,7 @@ export const processTransactions = async (
   );
 
   const results = await Promise.all(batches.map(batchClassifyTransactions));
+
   const classified = results.flat();
 
   for (const tx of classified) {
