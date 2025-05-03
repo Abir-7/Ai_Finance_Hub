@@ -2,8 +2,8 @@ import { Types } from "mongoose";
 
 export interface IUserExpensePlan {
   balance: {
-    income: number;
-    expense: number;
+    avgIncome: number;
+    avgExpense: number;
   };
   expenseLimit: {
     food: number;
@@ -39,6 +39,8 @@ export const categories = [
   "entertainment",
   "bills",
   "utilities",
+  "sports",
+  "fuel",
 ] as const;
 
 export type TCategory = (typeof categories)[number];

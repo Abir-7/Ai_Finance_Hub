@@ -1,15 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-useless-escape */
 import mongoose from "mongoose";
 import { IncomeService } from "./../modules/finance/income/income.service";
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
-import { IExpense } from "../modules/finance/expense/expense.interface";
-import Expense from "../modules/finance/expense/expense.model";
-import { IIncome } from "../modules/finance/income/income.interface";
-
+import { ExpenseService } from "../modules/finance/expense/expense.service";
 import { openai } from "./openAi";
-
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 export interface ITransaction {
   id: string;
@@ -38,39 +32,13 @@ export interface ITransaction {
   providerMutability: string;
 }
 
-// Function to convert transaction amount to number
 const convertAmount = (amount: ITransaction["amount"]): number => {
   const { unscaledValue, scale } = amount.value;
-  return Math.abs(parseInt(unscaledValue) / Math.pow(10, parseInt(scale)));
+  return Math.abs(Number(unscaledValue) / 10 ** Number(scale));
 };
 
-// Batch classify transactions (type, category, source) in a single API call
-const batchClassifyTransactions = async (
-  transactions: ITransaction[]
-): Promise<
-  Array<{
-    id: string;
-    type: "income" | "expense";
-    amount: number;
-    description: string;
-    category?: IExpense["category"];
-    source?: IIncome["source"];
-  }>
-> => {
-  const transactionsData = transactions.map((t) => ({
-    id: t.id,
-    description: t.descriptions.display,
-    amount: t.amount.value.unscaledValue,
-    amountSign:
-      parseInt(t.amount.value.unscaledValue) > 0 ? "positive" : "negative",
-  }));
-
-  const prompt = `
-    Classify the following financial transactions.
-    For each transaction:
-    1. Determine if it's "income" or "expense" (negative amount usually means expense, positive usually means income)
-    2. If it's an expense, classify it into one of these categories:   
-    "food",
+const ALLOWED_EXPENSE_CATEGORIES = [
+  "food",
   "social",
   "pets",
   "education",
@@ -87,26 +55,38 @@ const batchClassifyTransactions = async (
   "entertainment",
   "bills",
   "utilities",
+];
 
-    3. **If it's income, classify the source into one of these categories: salary, petty cash, bonus, other**
-    
-    Note: "fuel" expenses should be classified as "transport".
+const ALLOWED_INCOME_SOURCES = ["salary", "petty cash", "bonus", "other"];
 
-    Transactions:
-    ${JSON.stringify(transactionsData, null, 2)}
+const buildPrompt = (transactions: ITransaction[]) => {
+  const simplified = transactions.map((t) => ({
+    id: t.id,
+    d: t.descriptions.display,
+    a: t.amount.value.unscaledValue,
+    s: parseInt(t.amount.value.unscaledValue) > 0 ? "+" : "-",
+  }));
 
-    Return a JSON array with this format:
-    [
-      {
-        "id": "transaction-id",
-        "type": "income|expense",
-        "category": "category-name" (only for expenses),
-        "source": "source-name" (only for incomes)
-      }
-    ]
-    
-    Only return the JSON array, nothing else.
-  `;
+  return `
+You are a financial AI. Classify each transaction as "income" or "expense" using "s":
+- s = "+" → income (must include a source)
+- s = "-" → expense (must include a category)
+
+Allowed sources: ${ALLOWED_INCOME_SOURCES.join(", ")}
+Allowed categories: ${ALLOWED_EXPENSE_CATEGORIES.join(", ")}
+
+Return a valid JSON array like:
+[
+  { "id": "abc", "type": "income", "source": "salary" },
+  { "id": "xyz", "type": "expense", "category": "food" }
+]
+
+Data: ${JSON.stringify(simplified)}
+`.trim();
+};
+
+const batchClassifyTransactions = async (transactions: ITransaction[]) => {
+  const prompt = buildPrompt(transactions);
 
   try {
     const response = await openai.chat.completions.create({
@@ -115,46 +95,52 @@ const batchClassifyTransactions = async (
       response_format: { type: "json_object" },
     });
 
-    const result = await JSON.parse(
-      response.choices[0].message.content || "{}"
-    );
+    const result = JSON.parse(response.choices[0].message.content || "[]");
 
-    // Map the results back to our transactions with the converted amount
-    return transactions.map((transaction) => {
-      const classification =
-        result.transactions.find((r: any) => r.id === transaction.id) || {};
-      const amount = convertAmount(transaction.amount);
-      const description = transaction.descriptions.display;
+    return transactions.map((tx) => {
+      const found = result.transactions?.find((r: any) => r.id === tx.id) || {};
+      const amount = convertAmount(tx.amount);
+      const type =
+        found.type ||
+        (parseInt(tx.amount.value.unscaledValue) > 0 ? "income" : "expense");
+
+      const category = (found.category || "").toLowerCase();
+      const source = (found.source || "").toLowerCase();
 
       return {
-        id: transaction.id,
-        type: classification.type || "expense", // Default to expense if classification failed
+        id: tx.id,
+        type,
         amount,
-        description,
-        ...(classification.type === "expense"
-          ? { category: classification.category || "other" }
+        description: tx.descriptions.display,
+        ...(type === "expense"
+          ? {
+              category: ALLOWED_EXPENSE_CATEGORIES.includes(category)
+                ? category
+                : "other",
+            }
           : {}),
-        ...(classification.type === "income"
-          ? { source: classification.source || "other" }
+        ...(type === "income"
+          ? {
+              source: ALLOWED_INCOME_SOURCES.includes(source)
+                ? source
+                : "other",
+            }
           : {}),
       };
     });
-  } catch (error) {
-    console.error("Error in batch classification:", error);
-    // Fallback: classify transactions individually with simpler logic
-    return transactions.map((transaction) => {
-      const amount = convertAmount(transaction.amount);
-      const description = transaction.descriptions.display;
-      const type =
-        parseInt(transaction.amount.value.unscaledValue) > 0
-          ? "income"
-          : "expense";
+  } catch (err: any) {
+    const msg = err?.message?.toLowerCase() || "";
+    console.warn("⚠️ OpenAI Error:", msg);
 
+    return transactions.map((tx) => {
+      const amount = convertAmount(tx.amount);
+      const type =
+        parseInt(tx.amount.value.unscaledValue) > 0 ? "income" : "expense";
       return {
-        id: transaction.id,
+        id: tx.id,
         type,
         amount,
-        description,
+        description: tx.descriptions.display,
         ...(type === "expense" ? { category: "other" } : {}),
         ...(type === "income" ? { source: "other" } : {}),
       };
@@ -162,138 +148,97 @@ const batchClassifyTransactions = async (
   }
 };
 
-// Process transactions in batches
 export const processTransactions = async (
   data: { transactions: ITransaction[] },
   userId: string
 ) => {
-  const BATCH_SIZE = 20; // Adjust based on your needs and API limits
-  const transactions = data.transactions;
+  const BATCH_SIZE = 20;
+  const { transactions } = data;
 
-  console.log(
-    `Processing ${transactions.length} transactions in batches of ${BATCH_SIZE}`
+  const batches = Array.from(
+    { length: Math.ceil(transactions.length / BATCH_SIZE) },
+    (_, i) => transactions.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE)
   );
 
-  // Process in batches
-  for (let i = 0; i < transactions.length; i += BATCH_SIZE) {
-    const batch = transactions.slice(i, i + BATCH_SIZE);
-    console.log(
-      `Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-        transactions.length / BATCH_SIZE
-      )}`
-    );
+  const results = await Promise.all(batches.map(batchClassifyTransactions));
+  const classified = results.flat();
 
+  for (const tx of classified) {
     try {
-      const classifiedTransactions = await batchClassifyTransactions(batch);
-
-      // Process the classified transactions (save to DB, etc.)
-      for (const transaction of classifiedTransactions) {
-        if (transaction.type === "expense" && transaction.category) {
-          // Save expense to database
-          // Uncomment this when you're ready to save to the database
-
-          await Expense.create({
-            user: userId,
+      if (tx.type === "expense") {
+        await ExpenseService.addExpense(
+          [],
+          {
+            user: new mongoose.Types.ObjectId(userId),
             method: "card",
-            amount: transaction.amount,
-            description: {
-              images: [],
-              info: transaction.description,
-            },
+            amount: tx.amount,
+            description: { images: [], info: tx.description },
+            category: tx.category || "other",
+          },
+          userId
+        );
 
-            category: transaction.category,
-            date: new Date(),
-          });
+        console.log(
+          `💸 Saved expense: ${tx.description} (${tx.category}, €${tx.amount})`
+        );
+      } else {
+        await IncomeService.addIncome(
+          [],
+          {
+            amount: tx.amount,
+            description: { info: tx.description },
+            user: new mongoose.Types.ObjectId(userId),
+            source: tx.source || "other",
+            method: "bank",
+          },
+          userId
+        );
 
-          console.log(
-            `Saved expense: ${transaction.description} (${transaction.category}, €${transaction.amount})`
-          );
-        } else if (transaction.type === "income" && transaction.source) {
-          // Save income to database
-          // Uncomment this when you're ready to save to the database
-
-          await IncomeService.addIncome(
-            [],
-            {
-              amount: transaction.amount,
-              description: {
-                info: transaction.description,
-              },
-              user: new mongoose.Types.ObjectId(userId),
-              source: transaction.source,
-              method: "card",
-            },
-            userId
-          );
-
-          console.log(
-            `Saved income: ${transaction.description} (${transaction.source}, €${transaction.amount})`
-          );
-        }
+        console.log(
+          `💰 Saved income: ${tx.description} (${tx.source}, €${tx.amount})`
+        );
       }
     } catch (error) {
-      console.error(
-        `Error processing batch ${Math.floor(i / BATCH_SIZE) + 1}:`,
-        error
-      );
+      console.error(`❌ Error saving transaction ${tx.id}:`, error);
     }
   }
 
-  console.log("Transaction processing complete");
+  console.log("✅ All transactions processed");
 };
 
-// Optional: Add a simple caching mechanism to avoid reclassifying identical transactions
 export class TransactionClassifier {
-  private cache: Map<string, any> = new Map();
+  private cache = new Map<string, any>();
 
-  async classify(transactions: ITransaction[]): Promise<any[]> {
-    // Filter out transactions that are already in cache
-    const uncachedTransactions = transactions.filter(
-      (t) => !this.cache.has(this.getCacheKey(t))
-    );
-
-    let classifiedUncached: any[] = [];
-    if (uncachedTransactions.length > 0) {
-      // Only call API if there are uncached transactions
-      classifiedUncached = await batchClassifyTransactions(
-        uncachedTransactions
-      );
-
-      // Update cache with new classifications
-      classifiedUncached.forEach((ct) => {
-        const originalTx = uncachedTransactions.find((t) => t.id === ct.id);
-        if (originalTx) {
-          this.cache.set(this.getCacheKey(originalTx), ct);
-        }
-      });
-    }
-
-    // Combine cached and newly classified results
-    return transactions.map((t) => {
-      const cacheKey = this.getCacheKey(t);
-      if (this.cache.has(cacheKey)) {
-        return this.cache.get(cacheKey);
-      } else {
-        // This should not happen if classifiedUncached contains all uncached transactions
-        const amount = convertAmount(t.amount);
-        const description = t.descriptions.display;
-        const type =
-          parseInt(t.amount.value.unscaledValue) > 0 ? "income" : "expense";
-
-        return {
-          id: t.id,
-          type,
-          amount,
-          description,
-          ...(type === "expense" ? { category: "other" } : {}),
-          ...(type === "income" ? { source: "other" } : {}),
-        };
-      }
-    });
+  private getCacheKey({ descriptions, amount }: ITransaction) {
+    return `${descriptions.display}:${amount.value.unscaledValue}`;
   }
 
-  private getCacheKey(transaction: ITransaction): string {
-    // Create a unique key based on description and amount
-    return `${transaction.descriptions.display}:${transaction.amount.value.unscaledValue}`;
+  async classify(transactions: ITransaction[]) {
+    const uncached = transactions.filter(
+      (t) => !this.cache.has(this.getCacheKey(t))
+    );
+    const newlyClassified =
+      uncached.length > 0 ? await batchClassifyTransactions(uncached) : [];
+
+    for (const tx of newlyClassified) {
+      const original = uncached.find((t) => t.id === tx.id);
+      if (original) this.cache.set(this.getCacheKey(original), tx);
+    }
+
+    return transactions.map((t) => {
+      const key = this.getCacheKey(t);
+      return (
+        this.cache.get(key) || {
+          id: t.id,
+          type:
+            parseInt(t.amount.value.unscaledValue) > 0 ? "income" : "expense",
+          amount: convertAmount(t.amount),
+          description: t.descriptions.display,
+          ...(parseInt(t.amount.value.unscaledValue) > 0
+            ? { source: "other" }
+            : { category: "other" }),
+        }
+      );
+    });
   }
 }

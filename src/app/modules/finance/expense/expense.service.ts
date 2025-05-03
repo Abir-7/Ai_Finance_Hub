@@ -1,3 +1,4 @@
+import { TCategory } from "./../../users/userExpensePlan/userExpensePlan.interface";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -10,109 +11,74 @@ import AppError from "../../../errors/AppError";
 import unlinkFile from "../../../utils/helper/unlinkFiles";
 import { PresentMonthData } from "../financeReport/financeReport.model";
 import dayjs from "dayjs";
-import { TCategory } from "../../users/userExpensePlan/userExpensePlan.interface";
-import { NotificationService } from "../../notification/notification.service";
+
 import { Notification } from "../../notification/notification.model";
-
-// const addExpense = async (
-//   imageArray: Express.Multer.File[],
-//   expenseData: IExpense,
-//   userId: string
-// ): Promise<IExpense> => {
-//   console.log(userId);
-//   const expenseLimitData = await UserExpensePlan.findOne({
-//     user: userId,
-//   }).lean();
-
-//   const images = [];
-//   for (let i = 0; i < imageArray.length; i++) {
-//     const path = getRelativePath(imageArray[i].path);
-//     images.push(path);
-//   }
-
-//   if (images.length !== 0) {
-//     expenseData.description.images = images;
-//   }
-
-//   console.log(expenseLimitData);
-
-//   if (
-//     !expenseLimitData ||
-//     expenseLimitData?.balance?.expense <= 0 ||
-//     expenseLimitData?.balance?.income <= 0
-//   ) {
-//     images.map((path) => unlinkFile(path));
-//     throw new AppError(500, "Update your Expense plan first.");
-//   }
-
-//   const result = await Expense.create({
-//     ...expenseData,
-//     method: expenseData.method.toLowerCase(),
-//     category: expenseData.category.toLowerCase(),
-//     user: userId,
-//   });
-
-//   return result;
-// };
 
 export const addExpense = async (
   imageArray: Express.Multer.File[],
   expenseData: IExpense,
   userId: string
 ): Promise<IExpense> => {
+  console.log(expenseData);
   const session = await mongoose.startSession();
   session.startTransaction();
 
-  const images = [];
-
+  const images: string[] = [];
   expenseData.amount = Math.abs(expenseData.amount);
 
   try {
-    // 💥 Expense Limit Check
+    // ✅ Check Expense Plan Validity
     const expenseLimitData = await UserExpensePlan.findOne({
       user: userId,
     }).lean();
 
     if (
       !expenseLimitData ||
-      expenseLimitData?.balance?.expense <= 0 ||
-      expenseLimitData?.balance?.income <= 0
+      expenseLimitData?.balance?.avgExpense <= 0 ||
+      expenseLimitData?.balance?.avgIncome <= 0
     ) {
       throw new AppError(500, "Update your Expense plan first.");
     }
 
-    // 📸 Image Upload Handling
+    // ✅ Handle Image Uploads
     for (const img of imageArray) {
       const path = getRelativePath(img.path);
       images.push(path);
     }
-
     if (images.length > 0) {
       expenseData.description.images = images;
     }
 
+    // ✅ Date Setup for this Month
     const now = dayjs();
     const startOfMonth = now.startOf("month").toDate();
     const endOfMonth = now.endOf("month").toDate();
 
-    // 📆 Find or Create Monthly Summary
-    const present = await PresentMonthData.findOne({
+    // ✅ Monthly Summary Update
+    let present = await PresentMonthData.findOne({
       user: userId,
       createdAt: { $gte: startOfMonth, $lte: endOfMonth },
     }).session(session);
-    console.log(present);
+
     if (present) {
-      const newAvailable = present.availableMoney - expenseData.amount;
-      console.log(expenseData, userId);
       present.totalExpense += expenseData.amount;
-      present.availableMoney = newAvailable;
+      present.availableMoney -= expenseData.amount;
       await present.save({ session });
     } else {
-      // Prevent adding expense if no PresentMonthData and no income yet
-      throw new AppError(400, "No monthly summary found. Add income first.");
+      present = await PresentMonthData.create(
+        [
+          {
+            availableMoney: 0,
+            totalExpense: expenseData.amount,
+            totalIncome: 0,
+            user: userId,
+          },
+        ],
+        { session }
+      ).then((res) => res[0]);
     }
 
-    // 💾 Save Expense
+    // ✅ Save Expense
     const result = await Expense.create(
       [
         {
@@ -125,6 +91,7 @@ export const addExpense = async (
       { session }
     );
 
+    // ✅ Calculate Category Usage
     const categoryTotalCost = await Expense.aggregate([
       {
         $match: {
@@ -141,35 +108,42 @@ export const addExpense = async (
       },
     ]);
 
-    const categorylimit =
-      expenseLimitData?.expenseLimit[
-        expenseData.category.toLowerCase() as TCategory
-      ];
+    const categoryLimit =
+      expenseLimitData.expenseLimit[
+        expenseData.category.toLowerCase() as keyof typeof expenseLimitData.expenseLimit
+      ] || 0;
 
     const totalSpent = categoryTotalCost[0]?.total || 0;
-    const categoryLimit = categorylimit || 0;
-
     const percentageUsed =
       categoryLimit > 0 ? (totalSpent / categoryLimit) * 100 : 0;
-
     const value = Number(percentageUsed.toFixed(2));
 
     if (value > 75 && value < 100) {
-      await Notification.create({
-        category: expenseData.category.toLowerCase() as TCategory,
-        description: ` You're nearing your budget limit for "${expenseData.category}`,
-        title: "Expense Limit",
-        user: new mongoose.Types.ObjectId(userId),
-      });
+      await Notification.create(
+        [
+          {
+            category: expenseData.category.toLowerCase() as TCategory,
+            description: `You're nearing your budget limit for "${expenseData.category}".`,
+            title: "Expense Limit",
+            user: new mongoose.Types.ObjectId(userId),
+          },
+        ],
+        { session }
+      );
     }
 
     if (value >= 100) {
-      await Notification.create({
-        category: expenseData.category.toLowerCase() as TCategory,
-        description: ` You've exceeded your budget for "${expenseData.category}`,
-        title: "Expense Limit",
-        user: new mongoose.Types.ObjectId(userId),
-      });
+      await Notification.create(
+        [
+          {
+            category: expenseData.category.toLowerCase() as TCategory,
+            description: `You've exceeded your budget for "${expenseData.category}".`,
+            title: "Expense Limit",
+            user: new mongoose.Types.ObjectId(userId),
+          },
+        ],
+        { session }
+      );
     }
 
     await session.commitTransaction();
@@ -180,14 +154,16 @@ export const addExpense = async (
     await session.abortTransaction();
     session.endSession();
 
-    // Clean up uploaded images on failure
     for (const path of images) {
-      unlinkFile(path);
+      unlinkFile(path); // 🧹 Clean up images on failure
     }
 
-    throw new Error("Something went wrong when save expense data! Try again.");
+    throw new Error(
+      "Something went wrong when saving expense data! Try again."
+    );
   }
 };
+
 const getExpenseDataByDate = async (userId: string) => {
   const expensesGrouped = await Expense.aggregate([
     { $match: { user: new mongoose.Types.ObjectId(userId) } },

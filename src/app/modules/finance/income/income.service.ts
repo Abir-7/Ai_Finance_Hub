@@ -5,60 +5,109 @@ import { IIncome } from "./income.interface";
 import Income from "./income.model";
 import unlinkFile from "../../../utils/helper/unlinkFiles";
 import dayjs from "dayjs";
+import { PresentMonthData } from "../financeReport/financeReport.model";
 
 const addIncome = async (
   imageArray: Express.Multer.File[],
   incomeData: IIncome,
   userId: string
 ): Promise<IIncome> => {
-  const images = [];
-  for (let i = 0; i < imageArray.length; i++) {
-    const path = getRelativePath(imageArray[i].path);
-    images.push(path);
-  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  if (images.length !== 0) {
-    incomeData.description.images = images;
-  }
+  try {
+    const images: string[] = [];
+    for (const image of imageArray) {
+      const path = getRelativePath(image.path);
+      images.push(path);
+    }
 
-  if (incomeData.source === "salary") {
-    const startOfMonth = dayjs().startOf("month").toDate();
-    const endOfMonth = dayjs().endOf("month").toDate();
+    if (images.length) {
+      incomeData.description.images = images;
+    }
 
-    const result = await Income.findOneAndUpdate(
+    const now = dayjs();
+    const startOfMonth = now.startOf("month").toDate();
+    const endOfMonth = now.endOf("month").toDate();
+
+    let result: IIncome;
+
+    if (incomeData.source === "salary") {
+      result = await Income.findOneAndUpdate(
+        {
+          amount: Number(incomeData.amount),
+          source: "salary",
+          user: userId,
+          createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+        },
+        {
+          ...incomeData,
+          source: incomeData.source.toLowerCase(),
+          method: incomeData.method.toLowerCase(),
+          user: userId,
+        },
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true,
+          session,
+        }
+      );
+    } else {
+      result = await Income.create(
+        [
+          {
+            ...incomeData,
+            source: incomeData.source.toLowerCase(),
+            method: incomeData.method.toLowerCase(),
+            user: userId,
+          },
+        ],
+        { session }
+      ).then((res) => res[0]);
+
+      // If creation failed for some reason
+      if (!result) {
+        for (const path of images) {
+          unlinkFile(path);
+        }
+        throw new Error("Income creation failed");
+      }
+    }
+
+    await PresentMonthData.findOneAndUpdate(
       {
-        amount: Number(incomeData.amount),
-        source: "salary",
         user: userId,
         createdAt: { $gte: startOfMonth, $lte: endOfMonth },
       },
       {
-        ...incomeData,
-        source: incomeData.source.toLowerCase(),
-        method: incomeData.method.toLowerCase(),
-        user: userId,
+        $inc: {
+          totalIncome: incomeData.amount,
+          availableMoney: incomeData.amount,
+        },
       },
       {
-        upsert: true,
         new: true,
+        upsert: true,
         setDefaultsOnInsert: true,
+        session,
       }
     );
+
+    await session.commitTransaction();
+    session.endSession();
     return result;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    // Cleanup uploaded files
+    for (const image of imageArray) {
+      unlinkFile(getRelativePath(image.path));
+    }
+
+    throw error;
   }
-
-  const result = await Income.create({
-    ...incomeData,
-    source: incomeData.source.toLowerCase(),
-    method: incomeData.method.toLowerCase(),
-    user: userId,
-  });
-
-  if (!result) {
-    images.map((path) => unlinkFile(path));
-  }
-
-  return result;
 };
 
 const getIncomeDataByDate = async (userId: string) => {

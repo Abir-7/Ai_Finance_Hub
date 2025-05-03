@@ -21,7 +21,7 @@ const getDailySummary = async (
     user: new mongoose.Types.ObjectId(userId),
   };
 
-  if (query.method === "card" || query.method === "cash") {
+  if (query.method === "bank" || query.method === "cash") {
     baseMatch.method = query.method;
   }
 
@@ -490,47 +490,18 @@ const getDataFromAi = async (
   text: string,
   imageText: string
 ) => {
-  if (imageText) {
-    const data = await processQuery(
-      `${text}. Data: ${imageText}. 
+  //   if (imageText) {
+  //     const data = await processQuery(
+  //       `${text}. Data: ${imageText}.
 
-  **Follow:**   
-  If the user requests to save or store the data, analyze the type and create the JSON based on the type then call tools to save:
+  //   User ID: ${userId}
 
-  For **expense** data format:
-  {
-    amount: { type: Number, required: true },
-    category: { type: String, enum: categories, required: true },
-    method: { type: String, enum: method, required: true },
-    note: { type: String },
-    description: {
-      images: [{ type: String }],
-      info: { type: String, required: true },
-    },
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  }
-
-  For **income** data format:
-  {
-    amount: { type: Number, required: true },
-    source: { type: String, enum: source, required: true },
-    method: { type: String, enum: method, required: true },
-    note: { type: String },
-    description: {
-      images: [{ type: String }],
-      info: { type: String, required: true },
-    },
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  }
-
-  User ID: ${userId}
-
-  if tools not found. then say tool not found.
-`
-    );
-    return data;
-  }
-
+  //   if tools not found. then say tool not found.
+  // `
+  //     );
+  //     return data;
+  //   }
+  console.log(imageText);
   const prompt = `
 ${text}
 User ID: ${userId}
@@ -546,7 +517,7 @@ If a non-financial topic is detected, reply with:
 "I'm here to help with finance-related topics. Feel free to ask me about budgeting, expenses, income, or savings!"
 `;
 
-  const data = await processQuery(prompt);
+  const data = await processQuery(prompt, imageText);
   return data;
 };
 

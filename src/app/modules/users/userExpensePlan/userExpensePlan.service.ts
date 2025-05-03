@@ -24,9 +24,9 @@ const addUserExpensePlan = async (
 
   const total = sumNumericValues(filteredData);
 
-  balance.expense = total;
+  balance.avgExpense = total;
 
-  if (balance.expense > balance.income) {
+  if (balance.avgExpense > balance.avgIncome) {
     throw new AppError(500, "Expense cannot be greater than income.");
   }
 
@@ -54,8 +54,8 @@ const updateUserExpensePlan = async (
     throw new AppError(status.NOT_FOUND, "Expense plan  not found");
   }
 
-  if (balance?.income) {
-    expensePlan.balance.income = balance?.income;
+  if (balance?.avgIncome) {
+    expensePlan.balance.avgIncome = balance?.avgIncome;
   }
 
   const filteredData = removeFalsyFields(expenseLimit, false) as Record<
@@ -73,7 +73,7 @@ const updateUserExpensePlan = async (
       (sum, value) => sum + value,
       0
     );
-    expensePlan.balance.expense = totalExpense;
+    expensePlan.balance.avgExpense = totalExpense;
   }
 
   await expensePlan.save();

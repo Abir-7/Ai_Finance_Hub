@@ -4,8 +4,8 @@ import { IUserExpensePlan } from "./userExpensePlan.interface";
 const userExpensePlanSchema = new Schema<IUserExpensePlan>(
   {
     balance: {
-      income: { type: Number, default: 0 },
-      expense: { type: Number, default: 0 },
+      avgIncome: { type: Number, default: 0 },
+      avgExpense: { type: Number, default: 0 },
     },
     expenseLimit: {
       food: { type: Number, default: 0 },

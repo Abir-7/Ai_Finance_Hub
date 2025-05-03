@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ExpenseService } from "../modules/finance/expense/expense.service";
 
@@ -5,6 +6,7 @@ import { UserExpensePlanService } from "../modules/users/userExpensePlan/userExp
 import { IncomeService } from "../modules/finance/income/income.service";
 import OpenAI from "openai";
 import { openai } from "./openAi";
+import { categories } from "../modules/users/userExpensePlan/userExpensePlan.interface";
 const tools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
@@ -77,17 +79,65 @@ const tools: OpenAI.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "saveExpenseData",
+      description: "Save new expense data for a user",
+      parameters: {
+        type: "object",
+        properties: {
+          userId: { type: "string" },
+          expenseData: {
+            type: "object",
+            description: `Expense data to save.pick category from this: ${categories} . method :card or  cash `,
+            properties: {
+              amount: { type: "number" },
+              category: { type: "string" },
+              method: { type: "string" },
+              note: { type: "string" },
+              description: {
+                type: "object",
+                properties: {
+                  info: { type: "string" },
+                  images: {
+                    type: "array",
+                    items: { type: "string" },
+                  },
+                },
+                required: ["info"],
+              },
+            },
+            required: ["amount", "category", "method", "description"],
+          },
+        },
+        required: ["userId", "expenseData"],
+      },
+    },
+  },
 ];
 
-export async function processQuery(userQuery: string) {
+export async function processQuery(userQuery: string, url: string) {
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-    { role: "user", content: userQuery },
+    {
+      role: "user",
+      content: [
+        { type: "text", text: userQuery },
+        {
+          type: "image_url",
+          image_url: {
+            url: url,
+          },
+        },
+      ],
+    },
   ];
 
   let finalResponse = "";
   let requiresProcessing = true;
 
   while (requiresProcessing) {
+    console.log("-----------------object---------------------");
     const response = await openai.chat.completions.create({
       tools,
       model: "gpt-4o-mini",

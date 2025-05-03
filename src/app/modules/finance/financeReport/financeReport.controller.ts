@@ -1,8 +1,9 @@
+/* eslint-disable quotes */
 import status from "http-status";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { FinanceReportService } from "./financeReport.service";
-import Tesseract from "tesseract.js";
+
 import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 const getDailySummary = catchAsync(async (req, res) => {
   const result = await FinanceReportService.getDailySummary(
@@ -60,22 +61,22 @@ const expenseInPercentWithCategory = catchAsync(async (req, res) => {
 });
 
 const getDataFromAi = catchAsync(async (req, res) => {
-  let text1 = "";
-
+  // let text1 = "";
+  //  console.log(text1);
+  let imageUrl = "";
+  imageUrl = `https://cdn.vectorstock.com/i/1000v/57/77/realistic-shop-receipt-paper-payment-bill-vector-28345777.jpg`;
   if (req.file) {
     const path = getRelativePath(req.file?.path as string);
-
-    const imageUrl = `http://192.168.10.18:5000/${path}`;
-
-    await Tesseract.recognize(imageUrl, "eng").then(({ data: { text } }) => {
-      text1 = text;
-    });
+    imageUrl = `http://192.168.10.18:5000${path}`;
+    // await Tesseract.recognize(imageUrl, "eng").then(({ data: { text } }) => {
+    //   text1 = text;
+    // });
   }
 
   const result = await FinanceReportService.getDataFromAi(
     req.user.userId,
     req.body.text,
-    text1
+    imageUrl
   );
   sendResponse(res, {
     success: true,
