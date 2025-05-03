@@ -485,6 +485,8 @@ const expenseInPercentWithCategory = async (userId: string) => {
   return data;
 };
 
+let userRes: { data?: string; user?: string } = {};
+
 const getDataFromAi = async (
   userId: string,
   text: string,
@@ -516,7 +518,22 @@ You are a financial assistant.
   User ID: ${userId}
   `;
 
-  const data = await processQuery(prompt, imageUrl);
+  let data = "";
+  if (
+    userRes.data &&
+    userRes.user === userId &&
+    prompt.toLowerCase().includes("save") &&
+    prompt.toLowerCase().includes("don't") === false
+  ) {
+    data = await processQuery(
+      `${userRes.data}.save it. userId:${userRes.user}`,
+      ""
+    );
+    userRes = {};
+  } else {
+    data = await processQuery(prompt, imageUrl);
+    userRes = { data, user: userId };
+  }
   return data;
 };
 

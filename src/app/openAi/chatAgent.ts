@@ -119,21 +119,25 @@ const tools: OpenAI.ChatCompletionTool[] = [
 ];
 
 export async function processQuery(userQuery: string, url: string) {
+  const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
+    { type: "text", text: userQuery },
+  ];
+
+  if (url) {
+    content.push({
+      type: "image_url",
+      image_url: {
+        url: url,
+      },
+    });
+  }
+
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     {
       role: "user",
-      content: [
-        { type: "text", text: userQuery },
-        {
-          type: "image_url",
-          image_url: {
-            url: url,
-          },
-        },
-      ],
+      content: content,
     },
   ];
-
   let finalResponse = "";
   let requiresProcessing = true;
 
