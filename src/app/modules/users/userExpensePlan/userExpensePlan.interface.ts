@@ -6,17 +6,18 @@ export interface IUserExpensePlan {
     avgExpense: number;
   };
   expenseLimit: {
-    foodDining: number;
+    food_dining: number;
     transportation: number;
-    health: number;
+    utilities: number;
+    health_medical: number;
     entertainment: number;
     shopping: number;
     education: number;
     travel: number;
-    rent: number;
-    personalCare: number;
+    rent_mortgage: number;
+    personal_care: number;
     insurance: number;
-    Other: number;
+    other: number;
   };
   user: Types.ObjectId;
 }

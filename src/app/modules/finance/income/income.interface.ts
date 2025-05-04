@@ -10,6 +10,8 @@ export interface IIncome {
     info: string;
   };
   user: Types.ObjectId;
+  tId?: string;
+  accId?: string;
 }
 
 export const sources = [
@@ -22,5 +24,5 @@ export const sources = [
 ] as const;
 type TSource = (typeof sources)[number];
 
-export const method = ["cash", "bank"] as const;
+export const method = ["cash", "card"] as const;
 export type TMethod = (typeof method)[number];

@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import { IncomeService } from "./../modules/finance/income/income.service";
 import { ExpenseService } from "../modules/finance/expense/expense.service";
 import { openai } from "./openAi";
+import { Savings } from "../modules/finance/savings/savings.model";
 
 export interface ITransaction {
   id: string;
@@ -39,17 +40,18 @@ const convertAmount = (amount: ITransaction["amount"]): number => {
 };
 
 const ALLOWED_EXPENSE_CATEGORIES = [
-  "food & dining",
+  "food_dining",
   "transportation",
   "utilities",
-  "health & medical",
+  "health_medical",
   "entertainment",
   "shopping",
   "education",
   "travel",
-  "rent/mortgage",
-  "personal care",
+  "rent_mortgage",
+  "personal_care",
   "insurance",
+  "transfer",
   "other",
 ];
 
@@ -59,6 +61,7 @@ const ALLOWED_INCOME_SOURCES = [
   "investments",
   "gifts",
   "refunds",
+  "transfer",
   "other",
 ];
 
@@ -75,8 +78,9 @@ You are a financial AI. Classify each transaction as "income" or "expense" using
 - s = "+" → income (must include a source)
 - s = "-" → expense (must include a category)
 
-Allowed sources: ${ALLOWED_INCOME_SOURCES.join(", ")}
-Allowed categories: ${ALLOWED_EXPENSE_CATEGORIES.join(", ")}
+Allowed sources: ${ALLOWED_INCOME_SOURCES}
+Allowed categories: ${ALLOWED_EXPENSE_CATEGORIES}
+
 
 Return a valid JSON array like:
 [
@@ -90,7 +94,7 @@ Data: ${JSON.stringify(simplified)}
 
 const batchClassifyTransactions = async (transactions: ITransaction[]) => {
   const prompt = buildPrompt(transactions);
-
+  console.log(prompt);
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -112,6 +116,7 @@ const batchClassifyTransactions = async (transactions: ITransaction[]) => {
 
       return {
         id: tx.id,
+        accId: tx.accountId,
         type,
         amount,
         description: tx.descriptions.display,
@@ -141,6 +146,7 @@ const batchClassifyTransactions = async (transactions: ITransaction[]) => {
         parseInt(tx.amount.value.unscaledValue) > 0 ? "income" : "expense";
       return {
         id: tx.id,
+        accId: tx.accountId,
         type,
         amount,
         description: tx.descriptions.display,
@@ -170,33 +176,53 @@ export const processTransactions = async (
   for (const tx of classified) {
     try {
       if (tx.type === "expense") {
-        await ExpenseService.addExpense(
-          [],
-          {
-            user: new mongoose.Types.ObjectId(userId),
-            method: "card",
+        if (tx.category === "transfer") {
+          await Savings.create({
+            tId: tx.id,
+            accId: tx.accId,
             amount: tx.amount,
-            description: { images: [], info: tx.description },
-            category: tx.category || "other",
-          },
-          userId
-        );
+          });
+        } else {
+          await ExpenseService.addExpenseByAi(
+            [],
+            {
+              user: new mongoose.Types.ObjectId(userId),
+              method: "card",
+              amount: tx.amount,
+              description: { images: [], info: tx.description },
+              category: tx.category || "other",
+            },
+            userId,
+            tx.id,
+            tx.accId
+          );
+        }
 
         console.log(
           `💸 Saved expense: ${tx.description} (${tx.category}, €${tx.amount})`
         );
       } else {
-        await IncomeService.addIncome(
-          [],
-          {
+        if (tx.source === "transfer") {
+          await Savings.create({
+            tId: tx.id,
+            accId: tx.accId,
             amount: tx.amount,
-            description: { info: tx.description },
-            user: new mongoose.Types.ObjectId(userId),
-            source: tx.source || "other",
-            method: "bank",
-          },
-          userId
-        );
+          });
+        } else {
+          await IncomeService.addIncomeByAi(
+            [],
+            {
+              amount: tx.amount,
+              description: { info: tx.description },
+              user: new mongoose.Types.ObjectId(userId),
+              source: tx.source || "other",
+              method: "card",
+            },
+            userId,
+            tx.id,
+            tx.accId
+          );
+        }
 
         console.log(
           `💰 Saved income: ${tx.description} (${tx.source}, €${tx.amount})`

@@ -110,6 +110,115 @@ const addIncome = async (
   }
 };
 
+const addIncomeByAi = async (
+  imageArray: Express.Multer.File[],
+  incomeData: IIncome,
+  userId: string,
+  tId: string,
+  accId: string
+): Promise<IIncome> => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const images: string[] = [];
+    for (const image of imageArray) {
+      const path = getRelativePath(image.path);
+      images.push(path);
+    }
+
+    if (images.length) {
+      incomeData.description.images = images;
+    }
+
+    const now = dayjs();
+    const startOfMonth = now.startOf("month").toDate();
+    const endOfMonth = now.endOf("month").toDate();
+
+    let result: IIncome;
+
+    if (incomeData.source === "salary") {
+      result = await Income.findOneAndUpdate(
+        {
+          amount: Number(incomeData.amount),
+          source: "salary",
+          user: userId,
+          createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+        },
+        {
+          ...incomeData,
+          source: incomeData.source.toLowerCase(),
+          method: incomeData.method.toLowerCase(),
+          user: userId,
+          tId,
+          accId,
+        },
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true,
+          session,
+        }
+      );
+    } else {
+      result = await Income.create(
+        [
+          {
+            ...incomeData,
+            source: incomeData.source.toLowerCase(),
+            method: incomeData.method.toLowerCase(),
+            user: userId,
+            tId,
+            accId,
+          },
+        ],
+        { session }
+      ).then((res) => res[0]);
+
+      // If creation failed for some reason
+      if (!result) {
+        for (const path of images) {
+          unlinkFile(path);
+        }
+        throw new Error("Income creation failed");
+      }
+    }
+
+    await PresentMonthData.findOneAndUpdate(
+      {
+        user: userId,
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+      },
+      {
+        $inc: {
+          totalIncome: incomeData.amount,
+          availableMoney: incomeData.amount,
+        },
+      },
+      {
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true,
+        session,
+      }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+    return result;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    // Cleanup uploaded files
+    for (const image of imageArray) {
+      unlinkFile(getRelativePath(image.path));
+    }
+
+    throw error;
+  }
+};
+
 const getIncomeDataByDate = async (userId: string) => {
   const incomesGrouped = await Income.aggregate([
     {
@@ -166,4 +275,5 @@ export const IncomeService = {
   addIncome,
   getIncomeDataByDate,
   getCurrentMonthIncome,
+  addIncomeByAi,
 };

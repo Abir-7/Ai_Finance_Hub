@@ -10,22 +10,24 @@ export interface IExpense {
     info: string;
   };
   user: Types.ObjectId;
+  tId?: string;
+  accId?: string;
 }
 
 export const method = ["cash", "card"] as const;
 type TMethod = (typeof method)[number];
 
 export const categories = [
-  "food & dining",
+  "food_dining",
   "transportation",
   "utilities",
-  "health & medical",
+  "health_medical",
   "entertainment",
   "shopping",
   "education",
   "travel",
-  "rent/mortgage",
-  "personal care",
+  "rent_mortgage",
+  "personal_care",
   "insurance",
   "other",
 ] as const;

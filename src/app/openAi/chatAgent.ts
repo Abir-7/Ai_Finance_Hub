@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable quotes */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ExpenseService } from "../modules/finance/expense/expense.service";
@@ -124,25 +125,55 @@ export async function processQuery(userQuery: string, url: string) {
   ];
 
   if (url) {
-    content.push({
-      type: "image_url",
-      image_url: {
-        url: url,
-      },
-    });
+    content.push({ type: "image_url", image_url: { url } });
   }
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     {
-      role: "user",
-      content: content,
+      role: "system",
+      content: `
+  You are a financial assistant.
+  
+  **Your behavior:**
+  
+  1. Only call tools (like saveExpenseData) if the user clearly requests it.
+     - Use intent keywords like: "save", "analyze", "explain", "review", or similar.
+     - Example valid prompts:
+       - "Please save this expense image"
+       - "Explain the attached bill"
+     - Invalid prompts:
+       - "Check this out"
+       - Vague or unclear instructions
+  
+  2. If the user does not clearly request saving or analyzing the image, do **not** call any tool. Just describe what’s seen if relevant.
+  
+  3. If the topic is not finance-related, respond with:
+     > "I'm here to help with finance-related topics. Feel free to ask me about budgeting, expenses, income, or savings!"
+  
+  4. Never return raw image URLs.
+      `,
     },
+    { role: "user", content },
   ];
-  let finalResponse = "";
-  let requiresProcessing = true;
 
-  while (requiresProcessing) {
-    console.log("-----------------object---------------------");
+  const functionMap = {
+    getAllIncome: (args: any) => IncomeService.getIncomeDataByDate(args.userId),
+    getAllExpense: (args: any) =>
+      ExpenseService.getExpenseDataByDate(args.userId),
+    getAllIncomeOfPresentMonth: (args: any) =>
+      IncomeService.getCurrentMonthIncome(args.userId),
+    getAllExpenseOfPresentMonth: (args: any) =>
+      ExpenseService.getCurrentMonthExpense(args.userId),
+    getMonthlyUserExpenseLimitData: (args: any) =>
+      UserExpensePlanService.getUserExpenseLimit(args.userId),
+    saveExpenseData: (args: any) =>
+      ExpenseService.addExpense([], args.expenseData, args.userId),
+  };
+
+  let finalResponse = "";
+  const maxLoops = 4;
+
+  for (let i = 0; i < maxLoops; i++) {
     const response = await openai.chat.completions.create({
       tools,
       model: "gpt-4o-mini",
@@ -151,53 +182,17 @@ export async function processQuery(userQuery: string, url: string) {
     });
 
     const message = response.choices[0].message;
-    messages.push(message);
 
-    if (message.tool_calls && message.tool_calls.length > 0) {
-      // Process all tool calls dynamically
+    if (message.tool_calls?.length) {
       const toolResponses = await Promise.all(
         message.tool_calls.map(async (toolCall) => {
-          const functionName = toolCall.function.name;
-          const functionArgs = JSON.parse(toolCall.function.arguments);
+          const { name, arguments: argsRaw } = toolCall.function;
+          const args = JSON.parse(argsRaw);
 
           try {
-            let result;
-            switch (functionName) {
-              case "getAllIncome":
-                result = await IncomeService.getIncomeDataByDate(
-                  functionArgs.userId
-                );
-                break;
-              case "getAllExpense":
-                result = await ExpenseService.getExpenseDataByDate(
-                  functionArgs.userId
-                );
-                break;
-              case "getAllIncomeOfPresentMonth":
-                result = await IncomeService.getCurrentMonthIncome(
-                  functionArgs.userId
-                );
-                break;
-              case "getAllExpenseOfPresentMonth":
-                result = await ExpenseService.getCurrentMonthExpense(
-                  functionArgs.userId
-                );
-                break;
-              case "getMonthlyUserExpenseLimitData":
-                result = await UserExpensePlanService.getUserExpenseLimit(
-                  functionArgs.userId
-                );
-                break;
-              case "saveExpenseData":
-                result = await ExpenseService.addExpense(
-                  [],
-                  functionArgs.expenseData,
-                  functionArgs.userId
-                );
-                break;
-              default:
-                throw new Error(`Financial function ${functionName} not found`);
-            }
+            const handler = functionMap[name as keyof typeof functionMap];
+            if (!handler) throw new Error(`Unknown tool: ${name}`);
+            const result = await handler(args);
 
             return {
               role: "tool" as const,
@@ -213,14 +208,12 @@ export async function processQuery(userQuery: string, url: string) {
           }
         })
       );
-      messages.push(...toolResponses);
+      messages.push(message, ...toolResponses);
     } else {
       finalResponse = message.content || "";
-      requiresProcessing = false;
+      break;
     }
   }
 
   return finalResponse;
 }
-
-// ai will respose to user by read info from data base

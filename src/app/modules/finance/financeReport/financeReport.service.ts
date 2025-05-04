@@ -10,6 +10,7 @@ import {
   ITransaction,
   processTransactions,
 } from "../../../openAi/aiDbWriteAgent";
+import { Savings } from "../savings/savings.model";
 
 const getDailySummary = async (
   userId: string,
@@ -21,7 +22,7 @@ const getDailySummary = async (
     user: new mongoose.Types.ObjectId(userId),
   };
 
-  if (query.method === "bank" || query.method === "cash") {
+  if (query.method === "card" || query.method === "cash") {
     baseMatch.method = query.method;
   }
 
@@ -373,7 +374,6 @@ const presentMonthSummary = async (userId: string) => {
 };
 
 const expenseInPercentWithCategory = async (userId: string) => {
-  // Calculate start and end of the current month
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -385,18 +385,15 @@ const expenseInPercentWithCategory = async (userId: string) => {
         createdAt: { $gte: startOfMonth, $lte: endOfMonth },
       },
     },
-
     {
       $group: {
-        _id: "$category",
+        _id: "$category", // Group by category
         totalExpense: { $sum: "$amount" },
       },
     },
-
     {
       $lookup: {
         from: "userbalanceplans",
-        let: {},
         pipeline: [
           { $match: { user: new mongoose.Types.ObjectId(userId) } },
           { $project: { expenseLimit: 1 } },
@@ -404,57 +401,119 @@ const expenseInPercentWithCategory = async (userId: string) => {
         as: "userPlan",
       },
     },
-
     { $unwind: "$userPlan" },
-    // Add a field 'limit' based on the category using $switch
     {
       $addFields: {
         limit: {
           $switch: {
             branches: [
               {
-                case: { $eq: ["$_id", "food"] },
-                then: "$userPlan.expenseLimit.food",
+                case: { $eq: ["$_id", "food_dining"] },
+                then: {
+                  $getField: {
+                    field: "food_dining",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
-                case: { $eq: ["$_id", "apparel"] },
-                then: "$userPlan.expenseLimit.apparel",
+                case: { $eq: ["$_id", "transportation"] },
+                then: {
+                  $getField: {
+                    field: "transportation",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
-                case: { $eq: ["$_id", "rent"] },
-                then: "$userPlan.expenseLimit.rent",
+                case: { $eq: ["$_id", "utilities"] },
+                then: {
+                  $getField: {
+                    field: "utilities",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
-                case: { $eq: ["$_id", "transport"] },
-                then: "$userPlan.expenseLimit.transport",
+                case: { $eq: ["$_id", "health_medical"] },
+                then: {
+                  $getField: {
+                    field: "health_medical",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
-                case: { $eq: ["$_id", "health"] },
-                then: "$userPlan.expenseLimit.health",
+                case: { $eq: ["$_id", "entertainment"] },
+                then: {
+                  $getField: {
+                    field: "entertainment",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
+              },
+              {
+                case: { $eq: ["$_id", "shopping"] },
+                then: {
+                  $getField: {
+                    field: "shopping",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
                 case: { $eq: ["$_id", "education"] },
-                then: "$userPlan.expenseLimit.education",
+                then: {
+                  $getField: {
+                    field: "education",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
-                case: { $eq: ["$_id", "social"] },
-                then: "$userPlan.expenseLimit.social",
+                case: { $eq: ["$_id", "travel"] },
+                then: {
+                  $getField: {
+                    field: "travel",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
-                case: { $eq: ["$_id", "pets"] },
-                then: "$userPlan.expenseLimit.pets",
+                case: { $eq: ["$_id", "rent_mortgage"] },
+                then: {
+                  $getField: {
+                    field: "rent_mortgage",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
-                case: { $eq: ["$_id", "gift"] },
-                then: "$userPlan.expenseLimit.gift",
+                case: { $eq: ["$_id", "personal_care"] },
+                then: {
+                  $getField: {
+                    field: "personal_care",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
-                case: { $eq: ["$_id", "beauty"] },
-                then: "$userPlan.expenseLimit.beauty",
+                case: { $eq: ["$_id", "insurance"] },
+                then: {
+                  $getField: {
+                    field: "insurance",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
               {
                 case: { $eq: ["$_id", "other"] },
-                then: "$userPlan.expenseLimit.other",
+                then: {
+                  $getField: {
+                    field: "other",
+                    input: "$userPlan.expenseLimit",
+                  },
+                },
               },
             ],
             default: 0,
@@ -462,7 +521,6 @@ const expenseInPercentWithCategory = async (userId: string) => {
         },
       },
     },
-    // Project the final fields and calculate the percent
     {
       $project: {
         category: "$_id",
@@ -471,9 +529,10 @@ const expenseInPercentWithCategory = async (userId: string) => {
           $cond: {
             if: { $gt: ["$limit", 0] },
             then: {
-              $toInt: {
-                $multiply: [{ $divide: ["$totalExpense", "$limit"] }, 100],
-              },
+              $round: [
+                { $multiply: [{ $divide: ["$totalExpense", "$limit"] }, 100] },
+                0,
+              ],
             },
             else: 0,
           },
@@ -486,34 +545,12 @@ const expenseInPercentWithCategory = async (userId: string) => {
 };
 
 let userRes: { data?: string; user?: string } = {};
-
 const getDataFromAi = async (
   userId: string,
   text: string,
   imageUrl: string
 ) => {
-  console.log(imageUrl);
   const prompt = `
-You are a financial assistant.
-  
-  **Your behavior:**
-
-  1. Only call tools (like saveExpenseData) if the user clearly requests it.
-     - Use intent keywords like: "save", "analyze", "explain", "review", or similar.
-     - Example valid prompts:
-       - "Please save this expense image"
-       - "Explain the attached bill"
-     - Invalid prompts:
-       - "Check this out"
-       - Vague or unclear instructions
-  
-  2. If the user does not clearly request saving or analyzing the image, do **not** call any tool. Just describe what’s seen if relevant.
-  
-  3. If the topic is not finance-related, respond with:
-     > "I'm here to help with finance-related topics. Feel free to ask me about budgeting, expenses, income, or savings!"
-  
-  4. Never return raw image URLs.
-  ---
   User Text: ${text}
   User ID: ${userId}
   `;
@@ -537,8 +574,23 @@ You are a financial assistant.
   return data;
 };
 
-const saveDataByAi = async (transections: ITransaction[], userId: string) => {
-  return await processTransactions({ transactions: transections }, userId);
+const saveDataByAi = async (transactions: ITransaction[], userId: string) => {
+  const newTransactions: ITransaction[] = [];
+
+  for (const tx of transactions) {
+    const [existingExpense, existingIncome, existingSavings] =
+      await Promise.all([
+        Expense.findOne({ tId: tx.id }),
+        Income.findOne({ tId: tx.id }),
+        Savings.findOne({ tId: tx.id }),
+      ]);
+
+    if (!existingExpense && !existingIncome && !existingSavings) {
+      newTransactions.push(tx); // Only add if not already present
+    }
+  }
+
+  return await processTransactions({ transactions: newTransactions }, userId);
 };
 
 export const FinanceReportService = {

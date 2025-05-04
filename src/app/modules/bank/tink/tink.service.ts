@@ -53,8 +53,8 @@ const fetchBankData = async (
 
   const params: Record<string, unknown> = {
     pageSize: 100,
-    // bookedDateGte: today,
-    // bookedDateLte: today,
+    bookedDateGte: "2025-05-03",
+    bookedDateLte: "2025-05-03",
   };
 
   if (!!nextPageToken) {
