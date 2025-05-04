@@ -586,7 +586,7 @@ const saveDataByAi = async (transactions: ITransaction[], userId: string) => {
       ]);
 
     if (!existingExpense && !existingIncome && !existingSavings) {
-      newTransactions.push(tx); // Only add if not already present
+      newTransactions.push(tx);
     }
   }
 
