@@ -5,12 +5,11 @@ import mongoose from "mongoose";
 import { TMethod } from "../income/income.interface";
 import Income from "../income/income.model";
 import Expense from "../expense/expense.model";
-import { processQuery } from "../../../openAi/chatAgent";
-import {
-  ITransaction,
-  processTransactions,
-} from "../../../openAi/aiDbWriteAgent";
+//import { processQuery } from "../../../aiTask/openAi/chatAgent";
+import { ITransaction } from "../../../aiTask/openAi/aiDbWriteAgent";
 import { Savings } from "../savings/savings.model";
+import { processTransactionsByGemini } from "../../../aiTask/gemini/geminiAiDbWrite";
+import { processQuery } from "../../../aiTask/openAi/chatAgent";
 
 const getDailySummary = async (
   userId: string,
@@ -590,7 +589,10 @@ const saveDataByAi = async (transactions: ITransaction[], userId: string) => {
     }
   }
 
-  return await processTransactions({ transactions: newTransactions }, userId);
+  return await processTransactionsByGemini(
+    { transactions: newTransactions },
+    userId
+  );
 };
 
 export const FinanceReportService = {

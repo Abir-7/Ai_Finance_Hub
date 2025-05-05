@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import mongoose from "mongoose";
-import { IncomeService } from "./../modules/finance/income/income.service";
-import { ExpenseService } from "../modules/finance/expense/expense.service";
-import { openai } from "./openAi";
-import { Savings } from "../modules/finance/savings/savings.model";
+import { IncomeService } from "../../modules/finance/income/income.service";
+import { ExpenseService } from "../../modules/finance/expense/expense.service";
+import { Savings } from "../../modules/finance/savings/savings.model";
+import { genAI } from "./geminiAi";
 
 export interface ITransaction {
   id: string;
@@ -39,7 +39,7 @@ const convertAmount = (amount: ITransaction["amount"]): number => {
   return Math.abs(Number(unscaledValue) / 10 ** Number(scale));
 };
 
-const ALLOWED_EXPENSE_CATEGORIES = [
+export const ALLOWED_EXPENSE_CATEGORIES = [
   "food_dining",
   "transportation",
   "utilities",
@@ -81,11 +81,10 @@ You are a financial AI. Classify each transaction as "income" or "expense" using
 Allowed sources: ${ALLOWED_INCOME_SOURCES}
 Allowed categories: ${ALLOWED_EXPENSE_CATEGORIES}
 
-
 Return a valid JSON array like:
 [
   { "id": "abc", "type": "income", "source": "salary" },
-  { "id": "xyz", "type": "expense", "category": "food" }
+  { "id": "xyz", "type": "expense", "category": "food_dining" }
 ]
 
 Data: ${JSON.stringify(simplified)}
@@ -94,18 +93,35 @@ Data: ${JSON.stringify(simplified)}
 
 const batchClassifyTransactions = async (transactions: ITransaction[]) => {
   const prompt = buildPrompt(transactions);
-  console.log(prompt);
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
-    });
+  console.log("🧠 Prompt:\n", prompt);
 
-    const result = JSON.parse(response.choices[0].message.content || "[]");
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    // 🧽 Clean and extract JSON from Gemini response
+    const cleanJson = text
+      .replace(/^```json\s*/i, "")
+      .replace(/^```/, "")
+      .replace(/```$/, "")
+      .trim();
+
+    const firstBracketIndex = cleanJson.indexOf("[");
+    const lastBracketIndex = cleanJson.lastIndexOf("]");
+
+    if (firstBracketIndex === -1 || lastBracketIndex === -1) {
+      throw new Error("No valid JSON array found in Gemini response");
+    }
+
+    const jsonString = cleanJson.substring(
+      firstBracketIndex,
+      lastBracketIndex + 1
+    );
+    const resultJson = JSON.parse(jsonString);
 
     return transactions.map((tx) => {
-      const found = result.transactions?.find((r: any) => r.id === tx.id) || {};
+      const found = resultJson.find((r: any) => r.id === tx.id) || {};
       const amount = convertAmount(tx.amount);
       const type =
         found.type ||
@@ -137,9 +153,9 @@ const batchClassifyTransactions = async (transactions: ITransaction[]) => {
       };
     });
   } catch (err: any) {
-    const msg = err?.message?.toLowerCase() || "";
-    console.warn("⚠️ OpenAI Error:", msg);
+    console.warn("⚠️ Gemini Error:", err?.message || err);
 
+    // Fallback: return safe default mapping
     return transactions.map((tx) => {
       const amount = convertAmount(tx.amount);
       const type =
@@ -157,7 +173,7 @@ const batchClassifyTransactions = async (transactions: ITransaction[]) => {
   }
 };
 
-export const processTransactions = async (
+export const processTransactionsByGemini = async (
   data: { transactions: ITransaction[] },
   userId: string
 ) => {
@@ -170,7 +186,6 @@ export const processTransactions = async (
   );
 
   const results = await Promise.all(batches.map(batchClassifyTransactions));
-
   const classified = results.flat();
 
   for (const tx of classified) {

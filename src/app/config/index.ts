@@ -36,8 +36,9 @@ export const appConfig = {
     email: process.env.ADMIN_EMAIL,
     password: process.env.ADMIN_PASSWORD,
   },
-  openAi: {
-    key: process.env.GPT_KEY,
+  aiKey: {
+    openAi: { key: process.env.GPT_KEY },
+    geminiAi: { key: process.env.GEMINI_KEY },
   },
   goCardLess: {
     id: process.env.GCL_SECRETE_ID,

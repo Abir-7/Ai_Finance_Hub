@@ -5,6 +5,7 @@ import sendResponse from "../../../utils/sendResponse";
 import { FinanceReportService } from "./financeReport.service";
 
 import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
+
 const getDailySummary = catchAsync(async (req, res) => {
   const result = await FinanceReportService.getDailySummary(
     req.user.userId,
@@ -64,7 +65,7 @@ const getDataFromAi = catchAsync(async (req, res) => {
   // let text1 = "";
   //  console.log(text1);
   let imageUrl = "";
-  imageUrl = `https://cdn.vectorstock.com/i/1000v/57/77/realistic-shop-receipt-paper-payment-bill-vector-28345777.jpg`;
+  // imageUrl = `https://cdn.vectorstock.com/i/1000v/57/77/realistic-shop-receipt-paper-payment-bill-vector-28345777.jpg`;
   if (req.file) {
     const path = getRelativePath(req.file?.path as string);
     imageUrl = `http://192.168.10.18:5000${path}`;

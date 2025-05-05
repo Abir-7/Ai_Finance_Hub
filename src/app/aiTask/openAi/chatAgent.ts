@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable quotes */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ExpenseService } from "../modules/finance/expense/expense.service";
+import { ExpenseService } from "../../modules/finance/expense/expense.service";
 
-import { UserExpensePlanService } from "../modules/users/userExpensePlan/userExpensePlan.service";
-import { IncomeService } from "../modules/finance/income/income.service";
+import { UserExpensePlanService } from "../../modules/users/userExpensePlan/userExpensePlan.service";
+import { IncomeService } from "../../modules/finance/income/income.service";
 import OpenAI from "openai";
 import { openai } from "./openAi";
-import { categories } from "../modules/finance/expense/expense.interface";
+import { categories } from "../../modules/finance/expense/expense.interface";
 
 const tools: OpenAI.ChatCompletionTool[] = [
   {
