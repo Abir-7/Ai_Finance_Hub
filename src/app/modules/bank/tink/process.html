@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Processing Transactions</title>
+  </head>
+  <body>
+    <h2>🔄 Processing your transactions...</h2>
+    <p id="status">Please wait while we fetch your transaction data.</p>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      const userId = urlParams.get("userId");
+
+      async function processTransactions() {
+        try {
+          const response = await fetch(
+            `/tink/process?code=${code}&userId=${userId}`
+          );
+          const result = await response.json();
+
+          if (result.allTransactions?.length) {
+            document.getElementById(
+              "status"
+            ).textContent = `✅ Fetched ${result.allTransactions.length} transaction(s)!`;
+          } else {
+            document.getElementById("status").textContent =
+              "⚠️ No transactions found for today.";
+          }
+        } catch (err) {
+          console.error(err);
+          document.getElementById("status").textContent =
+            "❌ Failed to process transactions.";
+        }
+      }
+
+      processTransactions();
+    </script>
+  </body>
+</html>

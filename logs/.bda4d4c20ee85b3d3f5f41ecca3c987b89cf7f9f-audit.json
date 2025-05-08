@@ -6,26 +6,6 @@
     "auditLog": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\.bda4d4c20ee85b3d3f5f41ecca3c987b89cf7f9f-audit.json",
     "files": [
         {
-            "date": 1743824000191,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-05-rejections.log",
-            "hash": "472bd2a2b58aa0514715ad1a590bd719010386dc11247c1b37a7f1c51a54a11b"
-        },
-        {
-            "date": 1743916871381,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-06-rejections.log",
-            "hash": "0a0e6f9aca9806bbfae4a8ad651c80b884e156f793d5ae241b224d9fde68547f"
-        },
-        {
-            "date": 1744001955966,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-07-rejections.log",
-            "hash": "8bfd9bed377d27c39046083e704fb7c1ff6eff87cb28278dac0b6e82cc4b8f65"
-        },
-        {
-            "date": 1744075953084,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-08-rejections.log",
-            "hash": "fc4482fc37a8bc34afbac57d79242edf71dd8bf00c55989a06ce8daafe507ad4"
-        },
-        {
             "date": 1744169296478,
             "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-09-rejections.log",
             "hash": "9a8eb286f32748722795251122541d7e6c3902a3899f22cc765819f47d34cbf4"
@@ -89,6 +69,16 @@
             "date": 1746408910951,
             "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-05-05-rejections.log",
             "hash": "7b1e89b35a03123421927f14c8cdc25f0cb4cf18bca04a519b7915bcba4e1bf1"
+        },
+        {
+            "date": 1746498658252,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-05-06-rejections.log",
+            "hash": "0ba26a289f5947dcb95973cb6aa5335b319e8e9c4989ec9e6b65a523a2cbc0be"
+        },
+        {
+            "date": 1746676726202,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-05-08-rejections.log",
+            "hash": "7bd76f1b882fb32af4a884791782097d9dc30fb9eed7d7fbc8c0e6d4d830979a"
         }
     ],
     "hashType": "sha256"

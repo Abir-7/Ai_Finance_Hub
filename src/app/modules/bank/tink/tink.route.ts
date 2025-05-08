@@ -9,16 +9,16 @@ router.get(
   auth("USER"),
   TintController.getBankTransectionUrl
 );
-router.get("/get-bank-lncome", auth("USER"), TintController.getBankIncomeUrl);
-router.post(
-  "/get-bank-id-list",
-  auth("USER"),
-  TintController.getBankAccountIdlist
-);
-
 router.get("/callback", TintController.handleCallback);
+router.post("/transactions", TintController.getAllTransection);
 
-router.get("/get-bank-data", auth("USER"), TintController.fetchBankData);
+// router.post(
+//   "/get-bank-id-list",
+//   auth("USER"),
+//   TintController.getBankAccountIdlist
+// );
+
+//router.get("/get-bank-data", auth("USER"), TintController.fetchBankData);
 
 // router.get("/get-token", auth("USER"), TintController.getAccessToken);
 

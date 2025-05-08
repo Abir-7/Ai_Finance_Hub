@@ -13,6 +13,7 @@ export interface IBaseUser {
   isVerified: boolean;
   needToResetPass: boolean;
   hasPremiumAccess: boolean;
+  bankAccessToken: string;
 }
 
 export interface IUser extends IBaseUser, Document {

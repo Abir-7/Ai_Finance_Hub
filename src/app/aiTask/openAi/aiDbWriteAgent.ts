@@ -81,6 +81,7 @@ You are a financial AI. Classify each transaction as "income" or "expense" using
 Allowed sources: ${ALLOWED_INCOME_SOURCES}
 Allowed categories: ${ALLOWED_EXPENSE_CATEGORIES}
 
+Use the \`d\` field (merchant/description) to infer the category or source.
 
 Return a valid JSON array like:
 [

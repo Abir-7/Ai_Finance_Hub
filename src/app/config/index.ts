@@ -49,8 +49,6 @@ export const appConfig = {
     id: process.env.TINK_ID,
     key: process.env.TINK_SECRETE,
     baseUrl: process.env.TINK_BASE_URL,
-    bankTransectionUrl: process.env.TINK_BANK_TRANSECTION_URL,
-    bankIncomeUrl: process.env.TINK_BANK_INCOME_URL,
   },
   plaid: {
     id: process.env.PLAID_CLIENT_ID,

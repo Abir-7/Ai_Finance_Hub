@@ -567,6 +567,7 @@ const getDataFromAi = async (
     );
     userRes = {};
   } else {
+ 
     data = await processQuery(prompt, imageUrl);
     userRes = { data, user: userId };
   }
