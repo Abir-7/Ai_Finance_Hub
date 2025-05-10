@@ -6,11 +6,6 @@
     "auditLog": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\.bda4d4c20ee85b3d3f5f41ecca3c987b89cf7f9f-audit.json",
     "files": [
         {
-            "date": 1744169296478,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-09-rejections.log",
-            "hash": "9a8eb286f32748722795251122541d7e6c3902a3899f22cc765819f47d34cbf4"
-        },
-        {
             "date": 1744250522993,
             "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-10-rejections.log",
             "hash": "a7973ec3ff2dcf4dd15b37ba726c5d9f415908bb3dbab4f7f2bcfa9492fd659c"
@@ -79,6 +74,11 @@
             "date": 1746676726202,
             "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-05-08-rejections.log",
             "hash": "7bd76f1b882fb32af4a884791782097d9dc30fb9eed7d7fbc8c0e6d4d830979a"
+        },
+        {
+            "date": 1746842256062,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-05-10-rejections.log",
+            "hash": "ce5adeba6361cf6d7f2a3e790bd7aa816d0aeaa68d644e867ef9a7ceb90aa008"
         }
     ],
     "hashType": "sha256"

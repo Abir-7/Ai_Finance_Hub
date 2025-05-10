@@ -14,6 +14,7 @@ import { BankTransaction } from "./tink.model";
 import User from "../../users/user/user.model";
 
 import { jwtDecode } from "jwt-decode";
+import { filterTransection } from "../../../utils/bank/filterTransection";
 
 interface DecodedToken {
   exp: number;
@@ -232,14 +233,13 @@ const handleCallbackForTransection = async (code: string, userId: string) => {
     
       <script>
         const userId = "${userId}";
-        const token = "${token}";
     
         async function storeTransaction() {
           try {
             const response = await fetch('http://192.168.10.18:5000/api/bank/transactions', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ token, userId })
+              body: JSON.stringify({userId})
             });
     
             document.getElementById('loading').style.display = 'none';
@@ -278,9 +278,10 @@ const handleCallbackForTransection = async (code: string, userId: string) => {
   }
 };
 
-const getAllTransection = async (tokenData: string, userId: string) => {
-  const token = tokenData;
+const getAllTransection = async (userId: string) => {
   const today = dayjs().format("YYYY-MM-DD");
+
+  const userData = await User.findById(userId);
 
   const params: Record<string, unknown> = {
     pageSize: 2,
@@ -300,11 +301,12 @@ const getAllTransection = async (tokenData: string, userId: string) => {
       `${appConfig.tink.baseUrl}/data/v2/transactions`,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${userData?.bankAccessToken}`,
         },
         params,
       }
     );
+
     const transactions = response.data.transactions.map((tx: any) => ({
       id: tx.id,
       accountId: tx.accountId,
@@ -319,16 +321,29 @@ const getAllTransection = async (tokenData: string, userId: string) => {
         display: tx.descriptions.display,
       },
       status: tx.status,
+      user: userId,
     }));
 
     allTransactions.push(...transactions);
 
     nextPageToken = response.data.nextPageToken;
   } while (!!nextPageToken);
-  console.log(allTransactions);
-  await BankTransaction.insertMany(allTransactions, {
-    ordered: false,
-  });
+
+  const transactionIds = allTransactions.map((tx) => tx.id);
+  const existingTxs = await BankTransaction.find(
+    { id: { $in: transactionIds } },
+    { id: 1 }
+  ).lean();
+  const existingIds = new Set(existingTxs.map((tx) => tx.id));
+
+  // Filter out already existing transactions
+  const filteredTransactions = allTransactions.filter(
+    (tx) => !existingIds.has(tx.id)
+  );
+
+  if (filteredTransactions.length > 0) {
+    await BankTransaction.insertMany(filteredTransactions, { ordered: false });
+  }
 
   return { message: "Bank data saved to database" };
 };

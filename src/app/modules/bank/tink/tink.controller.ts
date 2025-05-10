@@ -41,13 +41,9 @@ const handleCallback = catchAsync(async (req, res) => {
   res.send(result);
 });
 const getAllTransection = catchAsync(async (req, res) => {
-  const token = req.body.token;
   const userId = req.body.userId;
-  if (!token) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  const result = await TintService.getAllTransection(token, userId);
+
+  const result = await TintService.getAllTransection(userId);
 
   sendResponse(res, {
     success: true,
