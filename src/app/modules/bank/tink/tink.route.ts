@@ -11,7 +11,11 @@ router.get(
 );
 router.get("/callback", TintController.handleCallback);
 router.post("/transactions", TintController.getAllTransection);
-
+router.get(
+  "/get-transactions-from-db",
+  auth("USER"),
+  TintController.fetchBankData
+);
 // router.post(
 //   "/get-bank-id-list",
 //   auth("USER"),

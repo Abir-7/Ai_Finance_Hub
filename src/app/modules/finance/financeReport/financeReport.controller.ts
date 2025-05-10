@@ -88,14 +88,11 @@ const getDataFromAi = catchAsync(async (req, res) => {
 });
 
 const saveDataByAi = catchAsync(async (req, res) => {
-  const result = await FinanceReportService.saveDataByAi(
-    req.body.transactions,
-    req.user.userId
-  );
+  const result = await FinanceReportService.saveDataByAi(req.user.userId);
   sendResponse(res, {
     success: true,
     statusCode: status.OK,
-    message: "Ai Data is Given.",
+    message: "Ai process and save given data.",
     data: result,
   });
 });

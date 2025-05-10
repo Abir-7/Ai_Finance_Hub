@@ -6,10 +6,12 @@ import { TMethod } from "../income/income.interface";
 import Income from "../income/income.model";
 import Expense from "../expense/expense.model";
 //import { processQuery } from "../../../aiTask/openAi/chatAgent";
-import { ITransaction } from "../../../aiTask/openAi/aiDbWriteAgent";
+
 import { Savings } from "../savings/savings.model";
 import { processTransactionsByGemini } from "../../../aiTask/gemini/geminiAiDbWrite";
 import { processQuery } from "../../../aiTask/openAi/chatAgent";
+import { BankTransaction } from "../../bank/tink/tink.model";
+import { IBankTransaction } from "../../bank/tink/tink.interface";
 
 const getDailySummary = async (
   userId: string,
@@ -567,28 +569,49 @@ const getDataFromAi = async (
     );
     userRes = {};
   } else {
- 
     data = await processQuery(prompt, imageUrl);
     userRes = { data, user: userId };
   }
   return data;
 };
 
-const saveDataByAi = async (transactions: ITransaction[], userId: string) => {
-  const newTransactions: ITransaction[] = [];
+const saveDataByAi = async (userId: string) => {
+  const today = new Date();
+  const start = new Date(today.setHours(0, 0, 0, 0));
+  const end = new Date(today.setHours(23, 59, 59, 999));
 
-  for (const tx of transactions) {
-    const [existingExpense, existingIncome, existingSavings] =
-      await Promise.all([
-        Expense.findOne({ tId: tx.id }),
-        Income.findOne({ tId: tx.id }),
-        Savings.findOne({ tId: tx.id }),
-      ]);
+  const transactions: IBankTransaction[] = await BankTransaction.find({
+    user: userId,
+    createdAt: {
+      $gte: start,
+      $lte: end,
+    },
+  }).lean();
 
-    if (!existingExpense && !existingIncome && !existingSavings) {
-      newTransactions.push(tx);
-    }
-  }
+  const txIds = transactions.map((tx) => tx.id);
+
+  // 🔥 Batch fetch all existing tIds from Expense, Income, Savings
+  const [expenseIds, incomeIds, savingsIds] = await Promise.all([
+    Expense.find({ tId: { $in: txIds } }, { tId: 1 }).lean(),
+    Income.find({ tId: { $in: txIds } }, { tId: 1 }).lean(),
+    Savings.find({ tId: { $in: txIds } }, { tId: 1 }).lean(),
+  ]);
+
+  // 🧠 Create Sets for faster lookup
+  const existingIds = new Set<string>([
+    ...expenseIds
+      .map((e) => e.tId)
+      .filter((id): id is string => id !== undefined),
+    ...incomeIds
+      .map((i) => i.tId)
+      .filter((id): id is string => id !== undefined),
+    ...savingsIds
+      .map((s) => s.tId)
+      .filter((id): id is string => id !== undefined),
+  ]);
+
+  // 🚀 Filter out only those transactions which are not in any collection
+  const newTransactions = transactions.filter((tx) => !existingIds.has(tx.id));
 
   return await processTransactionsByGemini(
     { transactions: newTransactions },

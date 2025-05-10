@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import mongoose from "mongoose";
 import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
-import { IIncome } from "./income.interface";
+import { IIncome, TSource } from "./income.interface";
 import Income from "./income.model";
 import unlinkFile from "../../../utils/helper/unlinkFiles";
 import dayjs from "dayjs";
 import { PresentMonthData } from "../financeReport/financeReport.model";
+import AppError from "../../../errors/AppError";
+
+import { Savings } from "../savings/savings.model";
 
 const addIncome = async (
   imageArray: Express.Multer.File[],
@@ -271,9 +274,35 @@ const getCurrentMonthIncome = async (userId: string) => {
   return incomeData;
 };
 
+const editIncomeSource = async (incomeId: string, source: TSource) => {
+  if (source === "transfer") {
+    const incomeData = await Income.findById(incomeId);
+
+    const createSavings = await Savings.create({
+      accId: incomeData?.accId,
+      amount: incomeData?.amount,
+      tId: incomeData?.tId,
+    });
+    await Income.findByIdAndDelete(incomeId);
+    return createSavings;
+  }
+
+  const incomeData = await Income.findByIdAndUpdate(
+    incomeId,
+    { source: source.toLowerCase() },
+    { new: true, runValidators: true }
+  );
+
+  if (!incomeData) {
+    throw new AppError(404, "Income data not found");
+  }
+  return incomeData;
+};
+
 export const IncomeService = {
   addIncome,
   getIncomeDataByDate,
   getCurrentMonthIncome,
   addIncomeByAi,
+  editIncomeSource,
 };

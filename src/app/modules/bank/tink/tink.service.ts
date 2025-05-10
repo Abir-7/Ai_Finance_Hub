@@ -14,7 +14,9 @@ import { BankTransaction } from "./tink.model";
 import User from "../../users/user/user.model";
 
 import { jwtDecode } from "jwt-decode";
-import { filterTransection } from "../../../utils/bank/filterTransection";
+import Expense from "../../finance/expense/expense.model";
+import Income from "../../finance/income/income.model";
+import { Savings } from "../../finance/savings/savings.model";
 
 interface DecodedToken {
   exp: number;
@@ -348,6 +350,59 @@ const getAllTransection = async (userId: string) => {
   return { message: "Bank data saved to database" };
 };
 
+const fetchBankData = async (userId: string) => {
+  const today = new Date();
+  const start = new Date(today.setHours(0, 0, 0, 0));
+  const end = new Date(today.setHours(23, 59, 59, 999));
+
+  // Fetch only necessary fields
+  const bankData = await BankTransaction.find({
+    user: userId,
+    createdAt: { $gte: start, $lte: end },
+  })
+    .select("id amount createdAt")
+    .lean();
+
+  const txIds = bankData.map((tx) => tx.id);
+
+  // Parallel fetch for categorization
+  const [expenses, incomes, savings] = await Promise.all([
+    Expense.find({ tId: { $in: txIds } })
+      .select("tId")
+      .lean(),
+    Income.find({ tId: { $in: txIds } })
+      .select("tId")
+      .lean(),
+    Savings.find({ tId: { $in: txIds } })
+      .select("tId")
+      .lean(),
+  ]);
+
+  const categorisedIds = new Set<string>();
+  for (const doc of [...expenses, ...incomes, ...savings]) {
+    if (doc.tId) {
+      categorisedIds.add(doc.tId.toString());
+    }
+  }
+
+  // Transform data
+  const formattedData = bankData.map((item) => {
+    const { unscaledValue, scale } = item.amount.value;
+    const actualAmount = Number(unscaledValue) / Math.pow(10, Number(scale));
+
+    return {
+      ...item,
+      amount: {
+        ...item.amount,
+        actualAmount,
+      },
+      isCategorised: categorisedIds.has(item.id.toString()),
+    };
+  });
+
+  return formattedData;
+};
+
 // const saveBankAccount = async (data: any) => {
 //   console.log(data);
 // };
@@ -355,7 +410,7 @@ const getAllTransection = async (userId: string) => {
 export const TintService = {
   getBankTransectionUrl,
   handleCallbackForTransection,
-  // fetchBankData,
+  fetchBankData,
   // getBankAccountIdlist,
   // saveBankAccount,
   getAllTransection,

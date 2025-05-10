@@ -53,6 +53,19 @@ const getAllTransection = catchAsync(async (req, res) => {
   });
 });
 
+const fetchBankData = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+
+  const result = await TintService.fetchBankData(userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Success",
+    data: result,
+  });
+});
+
 // const fetchBankData = catchAsync(async (req, res) => {
 //   const nextPageToken = req.query.nextPageToken as string | undefined;
 
@@ -74,7 +87,7 @@ const getAllTransection = catchAsync(async (req, res) => {
 export const TintController = {
   getBankTransectionUrl,
   handleCallback,
-  // fetchBankData,
+  fetchBankData,
   // getBankAccountIdlist,
   getAllTransection,
 };

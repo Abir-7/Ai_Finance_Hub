@@ -41,9 +41,23 @@ const getCurrentMonthIncome = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const editIncomeSource = catchAsync(async (req, res) => {
+  const result = await IncomeService.editIncomeSource(
+    req.params.id,
+    req.body.source
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Income source is successfully updated.",
+    data: result,
+  });
+});
 
 export const IncomeController = {
   addIncome,
   getIncomeDataByDate,
   getCurrentMonthIncome,
+  editIncomeSource,
 };

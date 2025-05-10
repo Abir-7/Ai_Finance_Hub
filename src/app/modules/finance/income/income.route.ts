@@ -26,5 +26,9 @@ router.get(
   auth("USER"),
   IncomeController.getCurrentMonthIncome
 );
-
+router.patch(
+  "/edit-income-source/:id",
+  auth("USER"),
+  IncomeController.editIncomeSource
+);
 export const IncomeRoute = router;

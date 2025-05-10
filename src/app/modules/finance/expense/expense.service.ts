@@ -366,9 +366,25 @@ const getCurrentMonthExpense = async (userId: string) => {
   return expenseData;
 };
 
+const editExpeseCategory = async (expensId: string, category: TCategory) => {
+  console.log("object");
+  const expenseData = await Expense.findByIdAndUpdate(
+    expensId,
+    { category: category.toLowerCase() as TCategory },
+    { new: true, runValidators: true }
+  );
+
+  if (!expenseData) {
+    throw new AppError(404, "Expense not found");
+  }
+
+  return expenseData;
+};
+
 export const ExpenseService = {
   addExpense,
   getExpenseDataByDate,
   getCurrentMonthExpense,
   addExpenseByAi,
+  editExpeseCategory,
 };

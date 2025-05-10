@@ -20,9 +20,10 @@ export const sources = [
   "investments",
   "gifts",
   "refunds",
+  "transfer",
   "other",
 ] as const;
-type TSource = (typeof sources)[number];
+export type TSource = (typeof sources)[number];
 
 export const method = ["cash", "card"] as const;
 export type TMethod = (typeof method)[number];

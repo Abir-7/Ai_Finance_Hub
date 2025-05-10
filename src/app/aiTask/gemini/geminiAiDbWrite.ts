@@ -6,35 +6,9 @@ import { IncomeService } from "../../modules/finance/income/income.service";
 import { ExpenseService } from "../../modules/finance/expense/expense.service";
 import { Savings } from "../../modules/finance/savings/savings.model";
 import { genAI } from "./geminiAi";
+import { IBankTransaction } from "../../modules/bank/tink/tink.interface";
 
-export interface ITransaction {
-  id: string;
-  accountId: string;
-  amount: {
-    value: {
-      unscaledValue: string;
-      scale: string;
-    };
-    currencyCode: string;
-  };
-  descriptions: {
-    original: string;
-    display: string;
-  };
-  dates: {
-    booked: string;
-  };
-  identifiers: {
-    providerTransactionId: string;
-  };
-  types: {
-    type: string;
-  };
-  status: string;
-  providerMutability: string;
-}
-
-const convertAmount = (amount: ITransaction["amount"]): number => {
+const convertAmount = (amount: IBankTransaction["amount"]): number => {
   const { unscaledValue, scale } = amount.value;
   return Math.abs(Number(unscaledValue) / 10 ** Number(scale));
 };
@@ -65,7 +39,7 @@ const ALLOWED_INCOME_SOURCES = [
   "other",
 ];
 
-const buildPrompt = (transactions: ITransaction[]) => {
+const buildPrompt = (transactions: IBankTransaction[]) => {
   const simplified = transactions.map((t) => ({
     id: t.id,
     d: t.descriptions.display,
@@ -91,12 +65,12 @@ Data: ${JSON.stringify(simplified)}
 `.trim();
 };
 
-const batchClassifyTransactions = async (transactions: ITransaction[]) => {
+const batchClassifyTransactions = async (transactions: IBankTransaction[]) => {
   const prompt = buildPrompt(transactions);
   console.log("🧠 Prompt:\n", prompt);
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent(prompt);
     const text = result.response.text();
 
@@ -174,7 +148,7 @@ const batchClassifyTransactions = async (transactions: ITransaction[]) => {
 };
 
 export const processTransactionsByGemini = async (
-  data: { transactions: ITransaction[] },
+  data: { transactions: IBankTransaction[] },
   userId: string
 ) => {
   const BATCH_SIZE = 20;
@@ -191,27 +165,19 @@ export const processTransactionsByGemini = async (
   for (const tx of classified) {
     try {
       if (tx.type === "expense") {
-        if (tx.category === "transfer") {
-          await Savings.create({
-            tId: tx.id,
-            accId: tx.accId,
+        await ExpenseService.addExpenseByAi(
+          [],
+          {
+            user: new mongoose.Types.ObjectId(userId),
+            method: "card",
             amount: tx.amount,
-          });
-        } else {
-          await ExpenseService.addExpenseByAi(
-            [],
-            {
-              user: new mongoose.Types.ObjectId(userId),
-              method: "card",
-              amount: tx.amount,
-              description: { images: [], info: tx.description },
-              category: tx.category || "other",
-            },
-            userId,
-            tx.id,
-            tx.accId
-          );
-        }
+            description: { images: [], info: tx.description },
+            category: tx.category || "other",
+          },
+          userId,
+          tx.id,
+          tx.accId
+        );
 
         console.log(
           `💸 Saved expense: ${tx.description} (${tx.category}, €${tx.amount})`
@@ -254,11 +220,11 @@ export const processTransactionsByGemini = async (
 export class TransactionClassifier {
   private cache = new Map<string, any>();
 
-  private getCacheKey({ descriptions, amount }: ITransaction) {
+  private getCacheKey({ descriptions, amount }: IBankTransaction) {
     return `${descriptions.display}:${amount.value.unscaledValue}`;
   }
 
-  async classify(transactions: ITransaction[]) {
+  async classify(transactions: IBankTransaction[]) {
     const uncached = transactions.filter(
       (t) => !this.cache.has(this.getCacheKey(t))
     );

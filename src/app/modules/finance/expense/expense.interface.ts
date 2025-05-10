@@ -29,6 +29,7 @@ export const categories = [
   "rent_mortgage",
   "personal_care",
   "insurance",
+  "transfer",
   "other",
 ] as const;
 

@@ -20,14 +20,18 @@ router.post(
 router.get(
   "/get-expense-data-by-date",
   auth("USER"),
-
   ExpenseController.getExpenseDataByDate
+);
+
+router.patch(
+  "/edit-category/:id",
+  auth("USER"),
+  ExpenseController.editExpenseCategory
 );
 
 router.get(
   "/get-current-month-expense",
   auth("USER"),
-
   ExpenseController.getCurrentMonthExpense
 );
 

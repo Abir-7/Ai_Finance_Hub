@@ -28,6 +28,21 @@ const getExpenseDataByDate = catchAsync(async (req, res) => {
   });
 });
 
+const editExpenseCategory = catchAsync(async (req, res) => {
+  const expenseId = req.params.id;
+  const result = await ExpenseService.editExpeseCategory(
+    expenseId,
+    req.body.category
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Expense category has been successfully updated",
+    data: result,
+  });
+});
+
 const getCurrentMonthExpense = catchAsync(async (req, res) => {
   const result = await ExpenseService.getCurrentMonthExpense(req.user.userId);
 
@@ -43,4 +58,5 @@ export const ExpenseController = {
   addExpense,
   getExpenseDataByDate,
   getCurrentMonthExpense,
+  editExpenseCategory,
 };
