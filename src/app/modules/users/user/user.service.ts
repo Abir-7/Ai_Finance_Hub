@@ -13,6 +13,7 @@ const createUser = async (data: {
   fullName: string;
   password: string;
 }): Promise<Partial<IUser>> => {
+  console.log(data);
   const hashedPassword = await getHashedPassword(data.password);
   const otp = getOtp(4);
   const expDate = getExpiryTime(10);

@@ -6,36 +6,6 @@
     "auditLog": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\.bda4d4c20ee85b3d3f5f41ecca3c987b89cf7f9f-audit.json",
     "files": [
         {
-            "date": 1744250522993,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-10-rejections.log",
-            "hash": "a7973ec3ff2dcf4dd15b37ba726c5d9f415908bb3dbab4f7f2bcfa9492fd659c"
-        },
-        {
-            "date": 1744428432262,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-12-rejections.log",
-            "hash": "a421ad74f1d325c752ea59b6b7cb061543ee77162c6b73828b04c07731d0485f"
-        },
-        {
-            "date": 1744508503344,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-13-rejections.log",
-            "hash": "833cbe63f6934300e1f6012661eeb69b8d19788b68c4cab6cb54740d6845c1aa"
-        },
-        {
-            "date": 1744594710538,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-14-rejections.log",
-            "hash": "0f3d073ea1861baa20f73857164a0ef04767ad4d36dfa8533251e247768c3e5d"
-        },
-        {
-            "date": 1744685643059,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-15-rejections.log",
-            "hash": "b6c5b993f7c2378db2c8ce6ed94517fda27bebd05412d65fc46ac87673a88646"
-        },
-        {
-            "date": 1744766821308,
-            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-16-rejections.log",
-            "hash": "195f278f4d19eeccb921f0012f590e62b5bc1ef3884fbd3fb05dbd125240e110"
-        },
-        {
             "date": 1745641072984,
             "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-04-26-rejections.log",
             "hash": "68c30a2272b465b99bb2351223c022ac27725c16a731a52348ead6fed577593e"
@@ -79,6 +49,16 @@
             "date": 1746842256062,
             "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-05-10-rejections.log",
             "hash": "ce5adeba6361cf6d7f2a3e790bd7aa816d0aeaa68d644e867ef9a7ceb90aa008"
+        },
+        {
+            "date": 1747626533470,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-05-19-rejections.log",
+            "hash": "c3c0d9aee0cb12f45e4f995bb69e9c5cfab03a7a515776ca12869b700895a32e"
+        },
+        {
+            "date": 1747705202830,
+            "name": "C:\\Abir-007\\Office_Projects\\AiFinanceHub\\logs\\2025-05-20-rejections.log",
+            "hash": "a4a65c0748c1198488faccc8f2638526fd0734c218beaa8e5675b870efe8abab"
         }
     ],
     "hashType": "sha256"
