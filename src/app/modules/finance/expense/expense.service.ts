@@ -18,26 +18,28 @@ export const addExpense = async (
   expenseData: IExpense,
   userId: string
 ): Promise<IExpense> => {
-  console.log(expenseData);
   const session = await mongoose.startSession();
   session.startTransaction();
 
   const images: string[] = [];
   expenseData.amount = Math.abs(expenseData.amount);
-
+  console.log(imageArray, expenseData);
   try {
     // ✅ Check Expense Plan Validity
     const expenseLimitData = await UserExpensePlan.findOne({
       user: userId,
     }).lean();
+    console.log(expenseLimitData);
 
     if (
       !expenseLimitData ||
       expenseLimitData?.balance?.avgExpense <= 0 ||
       expenseLimitData?.balance?.avgIncome <= 0
     ) {
-      throw new AppError(500, "Update your Expense plan first.");
+      throw new Error("Update your Expense plan first.");
     }
+
+    console.log("user expanse plan success.");
 
     // ✅ Handle Image Uploads
     for (const img of imageArray) {
@@ -76,7 +78,13 @@ export const addExpense = async (
         { session }
       ).then((res) => res[0]);
     }
-
+    console.log("user present data success.");
+    console.log({
+      ...expenseData,
+      method: expenseData.method.toLowerCase(),
+      category: expenseData.category.toLowerCase(),
+      user: userId,
+    });
     // ✅ Save Expense
     const result = await Expense.create(
       [
@@ -89,6 +97,8 @@ export const addExpense = async (
       ],
       { session }
     );
+
+    console.log("user expanse data success.");
 
     // ✅ Calculate Category Usage
     const categoryTotalCost = await Expense.aggregate([
@@ -106,7 +116,7 @@ export const addExpense = async (
         },
       },
     ]);
-
+    console.log("expense aggrigate");
     const categoryLimit =
       expenseLimitData.expenseLimit[
         expenseData.category.toLowerCase() as keyof typeof expenseLimitData.expenseLimit
@@ -144,7 +154,7 @@ export const addExpense = async (
         { session }
       );
     }
-
+    console.log("notification");
     await session.commitTransaction();
     session.endSession();
 
@@ -157,9 +167,7 @@ export const addExpense = async (
       unlinkFile(path); // 🧹 Clean up images on failure
     }
 
-    throw new Error(
-      "Something went wrong when saving expense data! Try again."
-    );
+    throw new Error(err);
   }
 };
 
@@ -170,7 +178,6 @@ export const addExpenseByAi = async (
   tId: string,
   accId: string
 ): Promise<IExpense> => {
-  console.log(expenseData);
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -310,7 +317,7 @@ export const addExpenseByAi = async (
     for (const path of images) {
       unlinkFile(path); // 🧹 Clean up images on failure
     }
-
+    console.log(err);
     throw new Error(
       "Something went wrong when saving expense data! Try again."
     );

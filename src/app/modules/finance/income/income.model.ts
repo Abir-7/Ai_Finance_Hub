@@ -12,7 +12,7 @@ const IncomeSchema = new Schema<IIncome>(
       images: [{ type: String }],
       info: { type: String, required: true },
     },
-    tId: { type: String, default: null, unique: true },
+    tId: { type: String, default: null, unique: true, sparse: true },
     accId: { type: String, default: null },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },

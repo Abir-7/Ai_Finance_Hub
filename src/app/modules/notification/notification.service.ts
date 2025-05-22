@@ -12,8 +12,8 @@ const createNotification = async (
 };
 
 // Get all notifications
-const getAllNotifications = async (): Promise<INotification[]> => {
-  return await Notification.find().sort({ createdAt: -1 }).exec(); // Sort by newest first
+const getAllNotifications = async (user: string): Promise<INotification[]> => {
+  return await Notification.find({ user }).sort({ createdAt: -1 }).exec(); // Sort by newest first
 };
 
 // Get a single notification by ID

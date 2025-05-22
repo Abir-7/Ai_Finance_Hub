@@ -22,7 +22,7 @@ const createNotification = catchAsync(async (req: Request, res: Response) => {
 
 // Get all notifications
 const getAllNotifications = catchAsync(async (req: Request, res: Response) => {
-  const result = await NotificationService.getAllNotifications();
+  const result = await NotificationService.getAllNotifications(req.user.userId);
   sendResponse(res, {
     data: result,
     success: true,
