@@ -17,6 +17,19 @@ const addExpense = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const addExpenseByVoice = catchAsync(async (req, res) => {
+  const result = await ExpenseService.addExpenseByVoice(
+    req.body.promt,
+    req.user.userId
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User expense data successfully stored.",
+    data: result,
+  });
+});
 const getExpenseDataByDate = catchAsync(async (req, res) => {
   const result = await ExpenseService.getExpenseDataByDate(req.user.userId);
 
@@ -56,6 +69,7 @@ const getCurrentMonthExpense = catchAsync(async (req, res) => {
 
 export const ExpenseController = {
   addExpense,
+  addExpenseByVoice,
   getExpenseDataByDate,
   getCurrentMonthExpense,
   editExpenseCategory,

@@ -15,6 +15,7 @@ const ExpenseSchema = new Schema<IExpense>(
     },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     tId: { type: String, default: null, unique: true, sparse: true },
+    accId: { type: String, default: null },
   },
   { timestamps: true }
 );

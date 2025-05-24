@@ -39,7 +39,7 @@ const convertAmount = (amount: ITransaction["amount"]): number => {
   return Math.abs(Number(unscaledValue) / 10 ** Number(scale));
 };
 
-const ALLOWED_EXPENSE_CATEGORIES = [
+export const ALLOWED_EXPENSE_CATEGORIES = [
   "food_dining",
   "transportation",
   "utilities",

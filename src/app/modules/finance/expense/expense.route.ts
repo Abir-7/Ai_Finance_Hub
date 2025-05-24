@@ -17,6 +17,12 @@ router.post(
   ExpenseController.addExpense
 );
 
+router.post(
+  "/add-expense-by-voice",
+  auth("USER"),
+  ExpenseController.addExpenseByVoice
+);
+
 router.get(
   "/get-expense-data-by-date",
   auth("USER"),

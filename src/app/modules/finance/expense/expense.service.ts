@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { getRelativePath } from "../../../utils/helper/getRelativeFilePath";
 import Expense from "./expense.model";
-import { IExpense, TCategory } from "./expense.interface";
+import { categories, IExpense, method, TCategory } from "./expense.interface";
 import mongoose, { Mongoose } from "mongoose";
 import UserExpensePlan from "../../users/userExpensePlan/userExpensePlan.model";
 import AppError from "../../../errors/AppError";
@@ -12,6 +12,7 @@ import { PresentMonthData } from "../financeReport/financeReport.model";
 import dayjs from "dayjs";
 
 import { Notification } from "../../notification/notification.model";
+import { getExpenseJsonFromPrompt } from "../../../aiTask/openAi/saveExpenseByAi";
 
 export const addExpense = async (
   imageArray: Express.Multer.File[],
@@ -170,8 +171,19 @@ export const addExpense = async (
     throw new Error(err);
   }
 };
+export const addExpenseByVoice = async (
+  expensePromt: string,
+  userId: string
+): Promise<IExpense> => {
+  const expense = await getExpenseJsonFromPrompt(expensePromt);
+  console.log(expense);
+
+  const result = await addExpense([], expense, userId);
+  return result;
+};
 
 export const addExpenseByAi = async (
+  // this for bank
   imageArray: Express.Multer.File[],
   expenseData: IExpense,
   userId: string,
@@ -394,4 +406,5 @@ export const ExpenseService = {
   getCurrentMonthExpense,
   addExpenseByAi,
   editExpeseCategory,
+  addExpenseByVoice,
 };
