@@ -41,7 +41,7 @@ const ALLOWED_INCOME_SOURCES = [
 
 const buildPrompt = (transactions: IBankTransaction[]) => {
   const simplified = transactions.map((t) => ({
-    id: t.id,
+    id: t.tId,
     d: t.descriptions.display,
     a: t.amount.value.unscaledValue,
     s: parseInt(t.amount.value.unscaledValue) > 0 ? "+" : "-",
@@ -95,7 +95,7 @@ const batchClassifyTransactions = async (transactions: IBankTransaction[]) => {
     const resultJson = JSON.parse(jsonString);
 
     return transactions.map((tx) => {
-      const found = resultJson.find((r: any) => r.id === tx.id) || {};
+      const found = resultJson.find((r: any) => r.id === tx.tId) || {};
       const amount = convertAmount(tx.amount);
       const type =
         found.type ||
@@ -105,8 +105,8 @@ const batchClassifyTransactions = async (transactions: IBankTransaction[]) => {
       const source = (found.source || "").toLowerCase();
 
       return {
-        id: tx.id,
-        accId: tx.accountId,
+        id: tx.tId,
+        accId: tx.accId,
         type,
         amount,
         description: tx.descriptions.display,
@@ -135,8 +135,8 @@ const batchClassifyTransactions = async (transactions: IBankTransaction[]) => {
       const type =
         parseInt(tx.amount.value.unscaledValue) > 0 ? "income" : "expense";
       return {
-        id: tx.id,
-        accId: tx.accountId,
+        id: tx.tId,
+        accId: tx.accId,
         type,
         amount,
         description: tx.descriptions.display,
@@ -161,6 +161,8 @@ export const processTransactionsByGemini = async (
 
   const results = await Promise.all(batches.map(batchClassifyTransactions));
   const classified = results.flat();
+
+  console.log(classified);
 
   for (const tx of classified) {
     try {
@@ -232,7 +234,7 @@ export class TransactionClassifier {
       uncached.length > 0 ? await batchClassifyTransactions(uncached) : [];
 
     for (const tx of newlyClassified) {
-      const original = uncached.find((t) => t.id === tx.id);
+      const original = uncached.find((t) => t.tId === tx.id);
       if (original) this.cache.set(this.getCacheKey(original), tx);
     }
 
@@ -240,7 +242,7 @@ export class TransactionClassifier {
       const key = this.getCacheKey(t);
       return (
         this.cache.get(key) || {
-          id: t.id,
+          id: t.tId,
           type:
             parseInt(t.amount.value.unscaledValue) > 0 ? "income" : "expense",
           amount: convertAmount(t.amount),

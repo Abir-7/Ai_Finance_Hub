@@ -40,10 +40,10 @@ const handleCallback = catchAsync(async (req, res) => {
   res.setHeader("Content-Type", "text/html");
   res.send(result);
 });
-const getAllTransection = catchAsync(async (req, res) => {
+const saveAllTransection = catchAsync(async (req, res) => {
   const userId = req.body.userId;
 
-  const result = await TintService.getAllTransection(userId);
+  const result = await TintService.saveAllTransection(userId);
 
   sendResponse(res, {
     success: true,
@@ -57,6 +57,21 @@ const fetchBankData = catchAsync(async (req, res) => {
   const userId = req.user.userId;
 
   const result = await TintService.fetchBankData(userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Success",
+    data: result,
+  });
+});
+const categoriseAllTransection = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+
+  const result = await TintService.categoriseAllTransection(
+    userId,
+    req.body.data
+  );
 
   sendResponse(res, {
     success: true,
@@ -89,5 +104,6 @@ export const TintController = {
   handleCallback,
   fetchBankData,
   // getBankAccountIdlist,
-  getAllTransection,
+  saveAllTransection,
+  categoriseAllTransection,
 };

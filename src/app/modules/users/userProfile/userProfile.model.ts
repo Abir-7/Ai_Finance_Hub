@@ -1,5 +1,9 @@
 import { Schema, model } from "mongoose";
-import { IUserProfile, profession } from "./userProfile.interface";
+import {
+  IUserProfile,
+  profession,
+  TinkCountryCode,
+} from "./userProfile.interface";
 
 const userProfileSchema = new Schema<IUserProfile>({
   fullName: { type: String, default: null },
@@ -13,6 +17,11 @@ const userProfileSchema = new Schema<IUserProfile>({
   profession: {
     type: String,
     enum: profession,
+    default: null,
+  },
+  country: {
+    type: String,
+    enum: Object.values(TinkCountryCode),
     default: null,
   },
 });

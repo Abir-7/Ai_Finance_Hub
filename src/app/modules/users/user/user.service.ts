@@ -2,6 +2,7 @@ import getExpiryTime from "../../../utils/helper/getExpiryTime";
 import getHashedPassword from "../../../utils/helper/getHashedPassword";
 import getOtp from "../../../utils/helper/getOtp";
 import { sendEmail } from "../../../utils/sendEmail";
+import { TinkCountryCode } from "../userProfile/userProfile.interface";
 
 import { UserProfile } from "../userProfile/userProfile.model";
 
@@ -9,11 +10,11 @@ import { IUser } from "./user.interface";
 import User from "./user.model";
 
 const createUser = async (data: {
+  country: TinkCountryCode;
   email: string;
   fullName: string;
   password: string;
 }): Promise<Partial<IUser>> => {
-  console.log(data);
   const hashedPassword = await getHashedPassword(data.password);
   const otp = getOtp(4);
   const expDate = getExpiryTime(10);
@@ -31,6 +32,7 @@ const createUser = async (data: {
     fullName: data.fullName,
     email: createdUser.email,
     user: createdUser._id,
+    ...(data.country && data.country !== "NONE" && { country: data.country }),
   };
   await UserProfile.create(userProfileData);
   await sendEmail(

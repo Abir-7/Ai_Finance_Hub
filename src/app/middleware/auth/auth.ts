@@ -42,6 +42,12 @@ export const auth =
         );
       }
 
+      if (userData && userData.isVerified === false) {
+        return next(
+          new AppError(status.UNAUTHORIZED, "You are not authorized")
+        );
+      }
+
       if (userRole.length && !userRole.includes(decodedData.userRole)) {
         return next(
           new AppError(status.UNAUTHORIZED, "You are not authorized")

@@ -1,8 +1,8 @@
 import { Types } from "mongoose";
 
 export interface IBankTransaction {
-  id: string;
-  accountId: string;
+  tId: string;
+  accId: string;
   amount: {
     value: {
       unscaledValue: string;

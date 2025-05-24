@@ -6,35 +6,9 @@ import { IncomeService } from "../../modules/finance/income/income.service";
 import { ExpenseService } from "../../modules/finance/expense/expense.service";
 import { openai } from "./openAi";
 import { Savings } from "../../modules/finance/savings/savings.model";
+import { IBankTransaction } from "../../modules/bank/tink/tink.interface";
 
-export interface ITransaction {
-  id: string;
-  accountId: string;
-  amount: {
-    value: {
-      unscaledValue: string;
-      scale: string;
-    };
-    currencyCode: string;
-  };
-  descriptions: {
-    original: string;
-    display: string;
-  };
-  dates: {
-    booked: string;
-  };
-  identifiers: {
-    providerTransactionId: string;
-  };
-  types: {
-    type: string;
-  };
-  status: string;
-  providerMutability: string;
-}
-
-const convertAmount = (amount: ITransaction["amount"]): number => {
+const convertAmount = (amount: IBankTransaction["amount"]): number => {
   const { unscaledValue, scale } = amount.value;
   return Math.abs(Number(unscaledValue) / 10 ** Number(scale));
 };
@@ -65,9 +39,9 @@ const ALLOWED_INCOME_SOURCES = [
   "other",
 ];
 
-const buildPrompt = (transactions: ITransaction[]) => {
+const buildPrompt = (transactions: IBankTransaction[]) => {
   const simplified = transactions.map((t) => ({
-    id: t.id,
+    id: t.tId,
     d: t.descriptions.display,
     a: t.amount.value.unscaledValue,
     s: parseInt(t.amount.value.unscaledValue) > 0 ? "+" : "-",
@@ -93,7 +67,7 @@ Data: ${JSON.stringify(simplified)}
 `.trim();
 };
 
-const batchClassifyTransactions = async (transactions: ITransaction[]) => {
+const batchClassifyTransactions = async (transactions: IBankTransaction[]) => {
   const prompt = buildPrompt(transactions);
   console.log(prompt);
   try {
@@ -106,7 +80,8 @@ const batchClassifyTransactions = async (transactions: ITransaction[]) => {
     const result = JSON.parse(response.choices[0].message.content || "[]");
 
     return transactions.map((tx) => {
-      const found = result.transactions?.find((r: any) => r.id === tx.id) || {};
+      const found =
+        result.transactions?.find((r: any) => r.id === tx.tId) || {};
       const amount = convertAmount(tx.amount);
       const type =
         found.type ||
@@ -116,8 +91,8 @@ const batchClassifyTransactions = async (transactions: ITransaction[]) => {
       const source = (found.source || "").toLowerCase();
 
       return {
-        id: tx.id,
-        accId: tx.accountId,
+        id: tx.tId,
+        accId: tx.accId,
         type,
         amount,
         description: tx.descriptions.display,
@@ -146,8 +121,8 @@ const batchClassifyTransactions = async (transactions: ITransaction[]) => {
       const type =
         parseInt(tx.amount.value.unscaledValue) > 0 ? "income" : "expense";
       return {
-        id: tx.id,
-        accId: tx.accountId,
+        id: tx.tId,
+        accId: tx.accId,
         type,
         amount,
         description: tx.descriptions.display,
@@ -159,9 +134,11 @@ const batchClassifyTransactions = async (transactions: ITransaction[]) => {
 };
 
 export const processTransactions = async (
-  data: { transactions: ITransaction[] },
+  data: { transactions: IBankTransaction[] },
   userId: string
 ) => {
+  console.log(data, "Gg");
+
   const BATCH_SIZE = 20;
   const { transactions } = data;
 
@@ -240,11 +217,11 @@ export const processTransactions = async (
 export class TransactionClassifier {
   private cache = new Map<string, any>();
 
-  private getCacheKey({ descriptions, amount }: ITransaction) {
+  private getCacheKey({ descriptions, amount }: IBankTransaction) {
     return `${descriptions.display}:${amount.value.unscaledValue}`;
   }
 
-  async classify(transactions: ITransaction[]) {
+  async classify(transactions: IBankTransaction[]) {
     const uncached = transactions.filter(
       (t) => !this.cache.has(this.getCacheKey(t))
     );
@@ -252,7 +229,7 @@ export class TransactionClassifier {
       uncached.length > 0 ? await batchClassifyTransactions(uncached) : [];
 
     for (const tx of newlyClassified) {
-      const original = uncached.find((t) => t.id === tx.id);
+      const original = uncached.find((t) => t.tId === tx.id);
       if (original) this.cache.set(this.getCacheKey(original), tx);
     }
 
@@ -260,7 +237,7 @@ export class TransactionClassifier {
       const key = this.getCacheKey(t);
       return (
         this.cache.get(key) || {
-          id: t.id,
+          id: t.tId,
           type:
             parseInt(t.amount.value.unscaledValue) > 0 ? "income" : "expense",
           amount: convertAmount(t.amount),

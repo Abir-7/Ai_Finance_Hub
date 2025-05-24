@@ -1,3 +1,4 @@
+import { UserProfile } from "./../../users/userProfile/userProfile.model";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-extra-boolean-cast */
@@ -17,6 +18,8 @@ import { jwtDecode } from "jwt-decode";
 import Expense from "../../finance/expense/expense.model";
 import Income from "../../finance/income/income.model";
 import { Savings } from "../../finance/savings/savings.model";
+import { IBankTransaction } from "./tink.interface";
+import { processTransactionsByGemini } from "../../../aiTask/gemini/geminiAiDbWrite";
 
 interface DecodedToken {
   exp: number;
@@ -24,123 +27,15 @@ interface DecodedToken {
 }
 
 const getBankTransectionUrl = async (id: string) => {
-  const tinkLink = `https://link.tink.com/1.0/transactions/connect-accounts/?client_id=${appConfig.tink.id}&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Fapi%2Fbank%2Fcallback&market=ES&locale=es_ES&state=${id}`;
-  return tinkLink;
+  const userProfile = await UserProfile.findOne({ user: id });
+
+  if (userProfile && userProfile.country) {
+    const tinkLink = `https://link.tink.com/1.0/transactions/connect-accounts/?client_id=${appConfig.tink.id}&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Fapi%2Fbank%2Fcallback&market=${userProfile.country}&locale=es_ES&state=${id}`;
+    return tinkLink;
+  } else {
+    throw new Error("Tink not support in your country.");
+  }
 };
-
-// const getBankAccountIdlist = async (token: string, userId: string) => {
-//   const isUserExist = await User.findById(userId);
-//   if (!isUserExist) {
-//     throw new AppError(status.NOT_FOUND, "User not found");
-//   }
-
-//   const response = await axios.get("https://api.tink.com/data/v2/accounts", {
-//     headers: {
-//       Authorization: `Bearer ${token}`,
-//     },
-//   });
-
-//   const accounts = response.data.accounts;
-//   return accounts;
-// };
-
-// const fetchBankData = async (
-//   id: string,
-//   token: string,
-//   nextPageToken?: string,
-//   accountId?: string
-// ) => {
-//   const today = dayjs().format("YYYY-MM-DD");
-
-//   const isUserExist = await User.findById(id);
-//   if (!isUserExist) {
-//     throw new AppError(status.NOT_FOUND, "User not found");
-//   }
-
-//   const params: Record<string, unknown> = {
-//     pageSize: 100,
-//     bookedDateGte: today,
-//     bookedDateLte: today,
-//   };
-
-//   if (!!nextPageToken) {
-//     params.pageToken = nextPageToken;
-//   }
-//   if (accountId) {
-//     params.accountIdIn = accountId;
-//   }
-
-//   const response = await axios.get(
-//     `${appConfig.tink.baseUrl}/data/v2/transactions`,
-//     {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//       params,
-//     }
-//   );
-//   return response.data;
-// };
-
-// const handleCallbackForTransection = async (code: string, userId: string) => {
-//   logger.info({ userId, code });
-
-//   const token = await TinkAcceesToken.getAccessTokenWithCode(code);
-//   const today = dayjs().format("YYYY-MM-DD");
-
-//   const params: Record<string, unknown> = {
-//     pageSize: 2,
-//     bookedDateGte: today,
-//     bookedDateLte: today,
-//   };
-
-//   const allTransactions: any[] = [];
-
-//   let nextPageToken: string | undefined = undefined;
-
-//   do {
-//     if (!!nextPageToken) {
-//       params.pageToken = nextPageToken;
-//     }
-
-//     const response = await axios.get(
-//       `${appConfig.tink.baseUrl}/data/v2/transactions`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//         params,
-//       }
-//     );
-//     console.log(response.data);
-//     const transactions = response.data.transactions.map((t: any) => {
-//       const unscaled = parseFloat(t.amount.value.unscaledValue);
-//       const scale = parseInt(t.amount.value.scale);
-//       const realAmount = unscaled / 10 ** scale;
-
-//       return {
-//         id: t.id,
-//         accountId: t.accountId,
-//         unscaledValue: t.amount.value.unscaledValue,
-//         scale: t.amount.value.scale,
-//         currencyCode: t.amount.currencyCode,
-//         description: t.descriptions.display,
-//         status: t.status,
-//         amount: Math.abs(realAmount),
-//       };
-//     });
-
-//     allTransactions.push(...transactions);
-
-//     nextPageToken = response.data.nextPageToken;
-//   } while (!!nextPageToken);
-
-//   // const bankData = await BankTransaction.insertMany(allTransactions, {
-//   //   ordered: false,
-//   // });
-
-//   return { allTransactions };
-// };
 
 const handleCallbackForTransection = async (code: string, userId: string) => {
   const getToken = await User.findById(userId);
@@ -280,18 +175,20 @@ const handleCallbackForTransection = async (code: string, userId: string) => {
   }
 };
 
-const getAllTransection = async (userId: string) => {
+// work auto when user connect bank
+const saveAllTransection = async (userId: string) => {
+  console.log("object");
   const today = dayjs().format("YYYY-MM-DD");
-
+  const threeDaysAgo = dayjs().subtract(2, "day").format("YYYY-MM-DD");
   const userData = await User.findById(userId);
 
   const params: Record<string, unknown> = {
     pageSize: 2,
-    bookedDateGte: today,
+    bookedDateGte: threeDaysAgo,
     bookedDateLte: today,
   };
 
-  const allTransactions: any[] = [];
+  const allTransactions: IBankTransaction[] = [];
 
   let nextPageToken: string | undefined = undefined;
 
@@ -310,8 +207,8 @@ const getAllTransection = async (userId: string) => {
     );
 
     const transactions = response.data.transactions.map((tx: any) => ({
-      id: tx.id,
-      accountId: tx.accountId,
+      tId: tx.id,
+      accId: tx.accountId,
       amount: {
         value: {
           unscaledValue: tx.amount.value.unscaledValue,
@@ -331,20 +228,23 @@ const getAllTransection = async (userId: string) => {
     nextPageToken = response.data.nextPageToken;
   } while (!!nextPageToken);
 
-  const transactionIds = allTransactions.map((tx) => tx.id);
+  const transactionIds = allTransactions.map((tx) => tx.tId);
+
   const existingTxs = await BankTransaction.find(
-    { id: { $in: transactionIds } },
-    { id: 1 }
+    { tId: { $in: transactionIds } },
+    { tId: 1 }
   ).lean();
-  const existingIds = new Set(existingTxs.map((tx) => tx.id));
+
+  const existingIds = new Set(existingTxs.map((tx) => tx.tId));
 
   // Filter out already existing transactions
   const filteredTransactions = allTransactions.filter(
-    (tx) => !existingIds.has(tx.id)
+    (tx) => !existingIds.has(tx.tId)
   );
-
+  console.dir(filteredTransactions, { depth: null });
   if (filteredTransactions.length > 0) {
     await BankTransaction.insertMany(filteredTransactions, { ordered: false });
+    console.log(filteredTransactions, "GG");
   }
 
   return { message: "Bank data saved to database" };
@@ -359,11 +259,9 @@ const fetchBankData = async (userId: string) => {
   const bankData = await BankTransaction.find({
     user: userId,
     createdAt: { $gte: start, $lte: end },
-  })
-    .select("id amount createdAt")
-    .lean();
+  }).lean();
 
-  const txIds = bankData.map((tx) => tx.id);
+  const txIds = bankData.map((tx) => tx.tId);
 
   // Parallel fetch for categorization
   const [expenses, incomes, savings] = await Promise.all([
@@ -385,33 +283,51 @@ const fetchBankData = async (userId: string) => {
     }
   }
 
-  // Transform data
-  const formattedData = bankData.map((item) => {
+  // Split data into two arrays
+  const categorised: any[] = [];
+  const nonCategorised: any[] = [];
+
+  for (const item of bankData) {
     const { unscaledValue, scale } = item.amount.value;
     const actualAmount = Number(unscaledValue) / Math.pow(10, Number(scale));
 
-    return {
+    const transformed = {
       ...item,
       amount: {
         ...item.amount,
         actualAmount,
       },
-      isCategorised: categorisedIds.has(item.id.toString()),
     };
-  });
+    console.log(transformed);
+    console.log(categorisedIds);
+    if (categorisedIds.has(item.tId.toString())) {
+      categorised.push({ ...transformed, isCategorised: true });
+    } else {
+      nonCategorised.push({ ...transformed, isCategorised: false });
+    }
+  }
 
-  return formattedData;
+  return {
+    categorised,
+    nonCategorised,
+  };
 };
 
-// const saveBankAccount = async (data: any) => {
-//   console.log(data);
-// };
+const categoriseAllTransection = async (
+  userId: string,
+  data: IBankTransaction[]
+) => {
+  const result = await processTransactionsByGemini(
+    { transactions: data },
+    userId
+  );
+  return result;
+};
 
 export const TintService = {
   getBankTransectionUrl,
   handleCallbackForTransection,
   fetchBankData,
-  // getBankAccountIdlist,
-  // saveBankAccount,
-  getAllTransection,
+  saveAllTransection,
+  categoriseAllTransection,
 };

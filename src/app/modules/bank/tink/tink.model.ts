@@ -3,8 +3,8 @@ import { IBankTransaction } from "./tink.interface";
 
 const BankTransactionSchema = new Schema<IBankTransaction>(
   {
-    id: { type: String, required: true, unique: true },
-    accountId: { type: String, required: true },
+    tId: { type: String, required: true, unique: true },
+    accId: { type: String, required: true },
     amount: {
       value: {
         unscaledValue: { type: String, required: true },
