@@ -76,6 +76,7 @@ const getDataFromAi = catchAsync(async (req, res) => {
   const result = await FinanceReportService.getDataFromAi(
     req.user.userId,
     req.body.text,
+    req.body.sId,
     imageUrl
   );
   sendResponse(res, {

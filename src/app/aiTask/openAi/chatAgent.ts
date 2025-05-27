@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable quotes */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ExpenseService } from "../../modules/finance/expense/expense.service";
 
+// --- Your imported services here ---
+import { ExpenseService } from "../../modules/finance/expense/expense.service";
 import { UserExpensePlanService } from "../../modules/users/userExpensePlan/userExpensePlan.service";
 import { IncomeService } from "../../modules/finance/income/income.service";
+import { categories } from "../../modules/finance/expense/expense.interface";
 import OpenAI from "openai";
 import { openai } from "./openAi";
-import { categories } from "../../modules/finance/expense/expense.interface";
 
+// Tools definition as per your original code
 const tools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
@@ -71,7 +71,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
     function: {
       name: "getMonthlyUserExpenseLimitData",
       description:
-        "Get expense limit in defferent categories of a user. if value 0  thats mean user not set data. advice to add these data.",
+        "Get expense limit in different categories of a user. If value 0, user has not set data. Advise to add these data.",
       parameters: {
         type: "object",
         properties: {
@@ -92,7 +92,7 @@ const tools: OpenAI.ChatCompletionTool[] = [
           userId: { type: "string" },
           expenseData: {
             type: "object",
-            description: `Expense data to save.pick category from this: ${categories}. method: card or cash`,
+            description: `Expense data to save. Pick category from this: ${categories}. method: card or cash`,
             properties: {
               amount: { type: "number" },
               category: { type: "string" },
@@ -119,56 +119,91 @@ const tools: OpenAI.ChatCompletionTool[] = [
   },
 ];
 
-export async function processQuery(userQuery: string, url: string) {
+// In-memory sessions store: sessionId => messages[]
+const sessions: Record<
+  string,
+  OpenAI.Chat.Completions.ChatCompletionMessageParam[]
+> = {};
+
+// Map tool functions to your services
+const functionMap = {
+  getAllIncome: (args: any) => IncomeService.getIncomeDataByDate(args.userId),
+  getAllExpense: (args: any) =>
+    ExpenseService.getExpenseDataByDate(args.userId),
+  getAllIncomeOfPresentMonth: (args: any) =>
+    IncomeService.getCurrentMonthIncome(args.userId),
+  getAllExpenseOfPresentMonth: (args: any) =>
+    ExpenseService.getCurrentMonthExpense(args.userId),
+  getMonthlyUserExpenseLimitData: (args: any) =>
+    UserExpensePlanService.getUserExpenseLimit(args.userId),
+  saveExpenseData: (args: any) =>
+    ExpenseService.addExpense([], args.expenseData, args.userId),
+};
+
+// Helper to extract text from content part array or string
+function extractTextFromContent(
+  content: string | OpenAI.Chat.Completions.ChatCompletionContentPart[]
+): string {
+  if (typeof content === "string") return content;
+  return content
+    .filter((part) => part.type === "text")
+    .map((part) => part.text)
+    .join(" ");
+}
+
+// Main processQuery function with session memory
+export async function processQuery(
+  sessionId: string,
+  userQuery: string,
+  url: string
+): Promise<string> {
+  if (!sessions[sessionId]) {
+    sessions[sessionId] = [];
+  }
+
   const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
     { type: "text", text: userQuery },
   ];
-
   if (url) {
     content.push({ type: "image_url", image_url: { url } });
   }
 
-  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+  // Append user message to session
+  sessions[sessionId].push({
+    role: "user",
+    content,
+  });
+
+  const systemMessage: OpenAI.Chat.Completions.ChatCompletionSystemMessageParam =
     {
       role: "system",
       content: `
-  You are a financial assistant.
-  
-  **Your behavior:**
-  
-  1. Only call tools (like saveExpenseData) if the user clearly requests it.
-     - Use intent keywords like: "save", "analyze", "explain", "review", or similar.
-     - Example valid prompts:
-       - "Please save this expense image"
-       - "Explain the attached bill"
-     - Invalid prompts:
-       - "Check this out"
-       - Vague or unclear instructions
-  
-  2. If the user does not clearly request saving or analyzing the image, do **not** call any tool. Just describe what’s seen if relevant.
-  
-  3. If the topic is not finance-related, respond with:
-     > "I'm here to help with finance-related topics. Feel free to ask me about budgeting, expenses, income, or savings!"
-  
-  4. Never return raw image URLs.
-      `,
-    },
-    { role: "user", content },
-  ];
+You are a financial assistant.
 
-  const functionMap = {
-    getAllIncome: (args: any) => IncomeService.getIncomeDataByDate(args.userId),
-    getAllExpense: (args: any) =>
-      ExpenseService.getExpenseDataByDate(args.userId),
-    getAllIncomeOfPresentMonth: (args: any) =>
-      IncomeService.getCurrentMonthIncome(args.userId),
-    getAllExpenseOfPresentMonth: (args: any) =>
-      ExpenseService.getCurrentMonthExpense(args.userId),
-    getMonthlyUserExpenseLimitData: (args: any) =>
-      UserExpensePlanService.getUserExpenseLimit(args.userId),
-    saveExpenseData: (args: any) =>
-      ExpenseService.addExpense([], args.expenseData, args.userId),
-  };
+**Your behavior:**
+
+1. Only call tools if the user clearly requests it.
+2. If the topic is not finance-related, respond politely.
+3. Never return raw image URLs.
+    `,
+    };
+
+  // Prepare messages with system prompt + session conversation
+  // const messages = [systemMessage, ...sessions[sessionId]];
+  const MAX_HISTORY = 5;
+  const recentMessages = sessions[sessionId].slice(-MAX_HISTORY);
+  const messages = [systemMessage, ...recentMessages];
+  // Quick local check for "what was my 1st question"
+  if (userQuery.toLowerCase().includes("what was my 1st question")) {
+    const firstUserMsg = sessions[sessionId].find((m) => m.role === "user");
+    if (firstUserMsg) {
+      return `Your first question was: "${extractTextFromContent(
+        firstUserMsg.content
+      )}"`;
+    } else {
+      return "I don't have any record of your first question yet.";
+    }
+  }
 
   let finalResponse = "";
   const maxLoops = 4;
@@ -208,12 +243,17 @@ export async function processQuery(userQuery: string, url: string) {
           }
         })
       );
+
+      // Append assistant message and tool results to session
+      sessions[sessionId].push(message, ...toolResponses);
+
+      // Append to messages array to keep updated for next iteration
       messages.push(message, ...toolResponses);
     } else {
       finalResponse = message.content || "";
+      sessions[sessionId].push(message);
       break;
     }
   }
-
   return finalResponse;
 }

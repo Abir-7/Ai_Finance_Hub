@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable arrow-body-style */
 import getExpiryTime from "../../../utils/helper/getExpiryTime";
 import getHashedPassword from "../../../utils/helper/getHashedPassword";
 import getOtp from "../../../utils/helper/getOtp";
+import logger from "../../../utils/logger";
 import { sendEmail } from "../../../utils/sendEmail";
 import { TinkCountryCode } from "../userProfile/userProfile.interface";
 
@@ -43,6 +46,12 @@ const createUser = async (data: {
   return { email: createdUser.email, isVerified: createdUser.isVerified };
 };
 
+const getAllUser = async () => {
+  logger.info("hit");
+  return await UserProfile.find().populate("user");
+};
+
 export const UserService = {
   createUser,
+  getAllUser,
 };

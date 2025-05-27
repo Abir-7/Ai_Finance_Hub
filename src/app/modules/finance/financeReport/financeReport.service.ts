@@ -548,6 +548,7 @@ let userRes: { data?: string; user?: string } = {};
 const getDataFromAi = async (
   userId: string,
   text: string,
+  sId: string,
   imageUrl: string
 ) => {
   const prompt = `
@@ -563,12 +564,13 @@ const getDataFromAi = async (
     prompt.toLowerCase().includes("don't") === false
   ) {
     data = await processQuery(
+      sId,
       `${userRes.data}.save it. userId:${userRes.user}`,
       ""
     );
     userRes = {};
   } else {
-    data = await processQuery(prompt, imageUrl);
+    data = await processQuery(sId, prompt, imageUrl);
     userRes = { data, user: userId };
   }
   return data;
@@ -587,7 +589,7 @@ const saveDataByAi = async (userId: string) => {
     },
   }).lean();
 
-  const txIds = transactions.map((tx) => tx.id);
+  const txIds = transactions.map((tx) => tx.tId);
 
   // 🔥 Batch fetch all existing tIds from Expense, Income, Savings
   const [expenseIds, incomeIds, savingsIds] = await Promise.all([
@@ -610,7 +612,7 @@ const saveDataByAi = async (userId: string) => {
   ]);
 
   // 🚀 Filter out only those transactions which are not in any collection
-  const newTransactions = transactions.filter((tx) => !existingIds.has(tx.id));
+  const newTransactions = transactions.filter((tx) => !existingIds.has(tx.tId));
 
   return await processTransactionsByGemini(
     { transactions: newTransactions },

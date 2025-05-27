@@ -27,7 +27,7 @@ router.get(
   FinanceReportController.expenseInPercentWithCategory
 );
 
-router.get(
+router.post(
   "/get-finanse-data-from-ai",
   auth("USER"),
   upload.single("image"),
