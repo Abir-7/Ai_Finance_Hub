@@ -298,8 +298,7 @@ const fetchBankData = async (userId: string) => {
         actualAmount,
       },
     };
-    console.log(transformed);
-    console.log(categorisedIds);
+
     if (categorisedIds.has(item.tId.toString())) {
       categorised.push({ ...transformed, isCategorised: true });
     } else {
@@ -317,8 +316,32 @@ const categoriseAllTransection = async (
   userId: string,
   data: IBankTransaction[]
 ) => {
+  const dataTid = data.map((datas) => datas.tId);
+
+  const [expenses, incomes, savings] = await Promise.all([
+    Expense.find({ tId: { $in: dataTid } })
+      .select("tId")
+      .lean(),
+    Income.find({ tId: { $in: dataTid } })
+      .select("tId")
+      .lean(),
+    Savings.find({ tId: { $in: dataTid } })
+      .select("tId")
+      .lean(),
+  ]);
+
+  const existingTIds = new Set([
+    ...expenses.map((e) => e.tId),
+    ...incomes.map((i) => i.tId),
+    ...savings.map((s) => s.tId),
+  ]);
+
+  const filteredData = data.filter(
+    (transaction) => !existingTIds.has(transaction.tId)
+  );
+
   const result = await processTransactionsByGemini(
-    { transactions: data },
+    { transactions: filteredData },
     userId
   );
   return result;

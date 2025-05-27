@@ -6,52 +6,76 @@ import path from "path";
 
 const env = process.env.NODE_ENV || "development";
 const logDir = path.join(process.cwd(), "logs");
+const successLogDir = path.join(logDir, "success");
+const errorLogDir = path.join(logDir, "error");
 
-// Create logs directory if it doesn't exist
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir, { recursive: true });
-}
+// Create directories if they don't exist
+[logDir, successLogDir, errorLogDir].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
-const dailyRotateFileTransport = new DailyRotateFile({
-  filename: path.join(logDir, "%DATE%-app.log"),
+// Filter to allow only info and below (success logs)
+const successFilter = format((info) =>
+  ["info", "http", "verbose", "debug", "silly"].includes(info.level)
+    ? info
+    : false
+);
+
+// Filter to allow only error level logs
+const errorFilter = format((info) => (info.level === "error" ? info : false));
+
+// Success/info logs transport
+const successTransport = new DailyRotateFile({
+  filename: path.join(successLogDir, "%DATE%-success.log"),
   datePattern: "YYYY-MM-DD",
   zippedArchive: true,
   maxSize: "20m",
   maxFiles: "30d",
   level: "info",
-  format: format.combine(format.timestamp(), format.json()),
+  format: format.combine(successFilter(), format.timestamp(), format.json()),
 });
 
-const errorFilter = format((info) => (info.level === "error" ? info : false));
+// Error logs transport
+const errorTransport = new DailyRotateFile({
+  filename: path.join(errorLogDir, "%DATE%-error.log"),
+  datePattern: "YYYY-MM-DD",
+  zippedArchive: true,
+  maxSize: "20m",
+  maxFiles: "30d",
+  level: "error",
+  format: format.combine(errorFilter(), format.timestamp(), format.json()),
+});
 
+// Exception handler (write to error folder)
 const exceptionHandlers = [
   new DailyRotateFile({
-    filename: path.join(logDir, "%DATE%-exceptions.log"),
+    filename: path.join(errorLogDir, "%DATE%-exceptions.log"),
     datePattern: "YYYY-MM-DD",
     zippedArchive: true,
     maxSize: "20m",
     maxFiles: "30d",
-    format: format.combine(errorFilter(), format.timestamp(), format.json()),
+    format: format.combine(format.timestamp(), format.json()),
   }),
 ];
 
+// Rejection handler (write to error folder)
 const rejectionHandlers = [
   new DailyRotateFile({
-    filename: path.join(logDir, "%DATE%-rejections.log"),
+    filename: path.join(errorLogDir, "%DATE%-rejections.log"),
     datePattern: "YYYY-MM-DD",
     zippedArchive: true,
     maxSize: "20m",
     maxFiles: "30d",
-    format: format.combine(errorFilter(), format.timestamp(), format.json()),
+    format: format.combine(format.timestamp(), format.json()),
   }),
 ];
 
 const logger = createLogger({
   level: env === "development" ? "debug" : "info",
   format: format.combine(
-    format.timestamp({
-      format: "YYYY-MM-DD HH:mm:ss",
-    }),
+    format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     format.errors({ stack: true }),
     format.splat(),
     format.json()
@@ -66,7 +90,8 @@ const logger = createLogger({
         )
       ),
     }),
-    dailyRotateFileTransport,
+    successTransport,
+    errorTransport,
   ],
   exceptionHandlers,
   rejectionHandlers,
