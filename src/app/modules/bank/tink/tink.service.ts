@@ -20,6 +20,7 @@ import Income from "../../finance/income/income.model";
 import { Savings } from "../../finance/savings/savings.model";
 import { IBankTransaction } from "./tink.interface";
 import { processTransactionsByGemini } from "../../../aiTask/gemini/geminiAiDbWrite";
+import { decrypt, encrypt } from "../../../utils/helper/encrypt&decrypt";
 
 interface DecodedToken {
   exp: number;
@@ -208,7 +209,7 @@ const saveAllTransection = async (userId: string) => {
 
     const transactions = response.data.transactions.map((tx: any) => ({
       tId: tx.id,
-      accId: tx.accountId,
+      accId: encrypt(tx.accountId),
       amount: {
         value: {
           unscaledValue: tx.amount.value.unscaledValue,
@@ -293,6 +294,7 @@ const fetchBankData = async (userId: string) => {
 
     const transformed = {
       ...item,
+      accId: decrypt(item.accId),
       amount: {
         ...item.amount,
         actualAmount,

@@ -56,4 +56,7 @@ export const appConfig = {
     plaid_env: process.env.PLAID_ENV,
     plaidBaseUrl: process.env.PLAID_API_URL,
   },
+  encrypt: {
+    s_key: process.env.ENCRYPTION_SECRET_KEY,
+  },
 };
