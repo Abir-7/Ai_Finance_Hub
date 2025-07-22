@@ -101,6 +101,10 @@ export const addExpense = async (
 
     console.log("user expanse data success.");
 
+    console.log("notification");
+    await session.commitTransaction();
+    session.endSession();
+
     // ✅ Calculate Category Usage
     const categoryTotalCost = await Expense.aggregate([
       {
@@ -127,37 +131,24 @@ export const addExpense = async (
     const percentageUsed =
       categoryLimit > 0 ? (totalSpent / categoryLimit) * 100 : 0;
     const value = Number(percentageUsed.toFixed(2));
-
+    console.log(value, "sdsasd");
     if (value > 75 && value < 100) {
-      await Notification.create(
-        [
-          {
-            category: expenseData.category.toLowerCase() as TCategory,
-            description: `You're nearing your budget limit for "${expenseData.category}".`,
-            title: "Expense Limit",
-            user: new mongoose.Types.ObjectId(userId),
-          },
-        ],
-        { session }
-      );
+      await Notification.create({
+        category: expenseData.category.toLowerCase() as TCategory,
+        description: `You're nearing your budget limit for "${expenseData.category}".`,
+        title: "Expense Limit",
+        user: new mongoose.Types.ObjectId(userId),
+      });
     }
 
     if (value >= 100) {
-      await Notification.create(
-        [
-          {
-            category: expenseData.category.toLowerCase() as TCategory,
-            description: `You've exceeded your budget for "${expenseData.category}".`,
-            title: "Expense Limit",
-            user: new mongoose.Types.ObjectId(userId),
-          },
-        ],
-        { session }
-      );
+      await Notification.create({
+        category: expenseData.category.toLowerCase() as TCategory,
+        description: `You've exceeded your budget for "${expenseData.category}".`,
+        title: "Expense Limit",
+        user: new mongoose.Types.ObjectId(userId),
+      });
     }
-    console.log("notification");
-    await session.commitTransaction();
-    session.endSession();
 
     return result[0];
   } catch (err: any) {
