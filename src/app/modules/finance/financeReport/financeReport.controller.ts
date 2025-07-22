@@ -67,7 +67,7 @@ const getDataFromAi = catchAsync(async (req, res) => {
   // imageUrl = `https://cdn.vectorstock.com/i/1000v/57/77/realistic-shop-receipt-paper-payment-bill-vector-28345777.jpg`;
   if (req.file) {
     const path = getRelativePath(req.file?.path as string);
-    imageUrl = `http://192.168.10.18:5000${path}`;
+    imageUrl = `http://31.220.31.202:5000${path}`;
     // await Tesseract.recognize(imageUrl, "eng").then(({ data: { text } }) => {
     //   text1 = text;
     // });
